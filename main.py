@@ -7,9 +7,9 @@ To some extent, you want the keycap of each letter in a
 word to be far away from the neighboring letters
 
 My passwords are typically 'beacon' or 'shadow' because every 
-letter is typed using a different finger (or avoiding the 
+letter is typed using a different finger (or avoids the 
 same finger usage for 2-3 letters in a row), meaning it can 
-be typed pretty much in minimal keystroke time
+be typed in pretty much minimal keystroke time
 
 With dvorak, there is no guarantee (and it is almost uncommon) 
 for different fingers to be used for each neighboring letter 
@@ -23,6 +23,7 @@ Teo Honda-Scully | 2022
 """
 
 import typing
+import parse_pdf
 
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 
@@ -31,7 +32,7 @@ class Keyboard:
     keyboard: typing.List[typing.List]
 
     def __init__(self) -> None:
-        self.keyboard = [['q' for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
+        self.keyboard = [['-' for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
     
     def print_space(self, size) -> None:
         print(' ' * size, end = "")
@@ -54,3 +55,4 @@ class Keyboard:
 if __name__ == '__main__':
     keyboard = Keyboard()
     keyboard.print()
+    print(parse_pdf.get_words())
