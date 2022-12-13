@@ -23,22 +23,33 @@ Teo Honda-Scully | 2022
 """
 
 import typing
-import numpy
 
 KEYBOARD_ROW_SIZE = [10, 9, 7]
-
-if __name__ == '__main__':
-    print ("Hello World")
 
 class Keyboard:
     __slots__ = 'keyboard'
     keyboard: typing.List[typing.List]
 
     def __init__(self) -> None:
-        self.keyboard = [int[i] for i in KEYBOARD_ROW_SIZE] 
+        self.keyboard = [['q' for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
+    
+    def print_space(self, size) -> None:
+        print(' ' * size, end = "")
+    
+    def print_key(self, key) -> None:
+        print(f' {key} ', end = "")
+    
+    def print_newline(self) -> None:
+        print("\n")
     
     def print(self) -> str:
-        print(self.keyboard)
+        self.print_newline()
+        for row in range(len(self.keyboard)):
+            self.print_space(row)
+            for key in self.keyboard[row]:
+                self.print_key(key)
+            self.print_newline()
 
-keyboard = Keyboard()
-keyboard.print()
+if __name__ == '__main__':
+    keyboard = Keyboard()
+    keyboard.print()
