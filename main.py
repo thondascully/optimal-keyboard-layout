@@ -23,6 +23,7 @@ Teo Honda-Scully | 2022
 """
 
 import typing
+import numpy
 
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 
@@ -38,3 +39,6 @@ class Keyboard:
     
     def print(self) -> str:
         print(self.keyboard)
+
+keyboard = Keyboard()
+keyboard.print()
