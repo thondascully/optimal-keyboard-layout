@@ -21,3 +21,6 @@ without using the same finger for both 'l's
 
 Teo Honda-Scully | 2022
 """
+
+if __name__ == '__main__':
+    print ("Hello World")
