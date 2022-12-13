@@ -22,5 +22,19 @@ without using the same finger for both 'l's
 Teo Honda-Scully | 2022
 """
 
+import typing
+
+KEYBOARD_ROW_SIZE = [10, 9, 7]
+
 if __name__ == '__main__':
     print ("Hello World")
+
+class Keyboard:
+    __slots__ = 'keyboard'
+    keyboard: typing.List[typing.List]
+
+    def __init__(self) -> None:
+        self.keyboard = [int[i] for i in KEYBOARD_ROW_SIZE] 
+    
+    def print(self) -> str:
+        print(self.keyboard)
