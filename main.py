@@ -40,7 +40,7 @@ class Keyboard:
         print(f' {key} ', end = "")
     
     def print_newline(self) -> None:
-        print("\n")
+        print("")
     
     def print(self) -> str:
         self.print_newline()
@@ -49,6 +49,7 @@ class Keyboard:
             for key in self.keyboard[row]:
                 self.print_key(key)
             self.print_newline()
+        self.print_newline()
 
 if __name__ == '__main__':
     keyboard = Keyboard()
