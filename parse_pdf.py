@@ -5,4 +5,4 @@ def get_words():
                 for token in (token for token in line.split(' ') if any(map(str.isalpha, token))):
                     if not token.__contains__("(") and not token.__contains__(")"):
                         alpha_words.append(token.rstrip())
-    return alpha_words
+    return alpha_words[15:]

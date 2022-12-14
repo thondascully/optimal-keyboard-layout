@@ -26,6 +26,7 @@ import typing
 import parse_pdf
 
 KEYBOARD_ROW_SIZE = [10, 9, 7]
+contiguous_count = {}
 
 class Keyboard:
     __slots__ = 'keyboard'
@@ -52,7 +53,18 @@ class Keyboard:
             self.print_newline()
         self.print_newline()
 
+def populate_contiguous_count():
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    for first in alpha:
+        for second in alpha:
+            contiguous_count[first + second] = 0
+
 if __name__ == '__main__':
     keyboard = Keyboard()
     keyboard.print()
-    print(parse_pdf.get_words())
+    populate_contiguous_count()
+
+    for word in parse_pdf.get_words()[:10]:
+        length = len(word)            
+        for index in range(length - 1):
+            print(word[index] + word[index + 1])
