@@ -60,11 +60,15 @@ def populate_contiguous_count():
             contiguous_count[first + second] = 0
 
 if __name__ == '__main__':
-    keyboard = Keyboard()
-    keyboard.print()
     populate_contiguous_count()
 
-    for word in parse_pdf.get_words()[:10]:
+    for word in parse_pdf.get_words():
         length = len(word)            
         for index in range(length - 1):
-            print(word[index] + word[index + 1])
+            contiguous_count[word[index] + word[index + 1]] += 1
+            print(f'{word} | {word[index] + word[index + 1]}')
+
+    print({k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])})
+
+    keyboard = Keyboard()
+    keyboard.print()
