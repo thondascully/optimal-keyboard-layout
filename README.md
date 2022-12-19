@@ -126,7 +126,8 @@ Solution: going through the character list in order to assign to a key, assign l
 
 <img width="785" alt="Screen Shot 2022-12-19 at 1 54 07 AM" src="https://user-images.githubusercontent.com/114739901/208398096-3a6d0d91-c061-431a-bd9f-6ca2f5f47e2e.png">
 
-- **Group each char together with the digraphs that contain the char**
+- **Group each char together with the digraphs that contain the char. Order the digraphs by occurrence frequency. Only show the first n amount (n = 5 in this case)**
 
-<img width="1274" alt="Screen Shot 2022-12-19 at 1 53 20 AM" src="https://user-images.githubusercontent.com/114739901/208398120-102f18b2-1b91-47c2-ae2a-d5b125ed322e.png">
+<img width="1266" alt="Screen Shot 2022-12-19 at 1 57 43 AM" src="https://user-images.githubusercontent.com/114739901/208398828-390cb09f-de02-4a0a-a06f-060449c127be.png">
+
 
