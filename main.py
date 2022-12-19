@@ -136,15 +136,11 @@ def populate_qwerty_pairing():
 def get_finger(qwerty_key: str) -> Finger:
     row = QWERTY_KEY_PAIR[qwerty_key][0]
     column = QWERTY_KEY_PAIR[qwerty_key][1]
-    print(f'\n{qwerty_key}: {row}, {column}')
     for finger in fingers.values():
         for key in finger.keys:
             if (key.row == row and key.column == column):
-                for tag, f in fingers.items():
-                    if f == finger:
-                        print(tag)
-
-
+                return finger
+                
 # Ugly, but necessary :( assigns each key to its respective comfort finger
 def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
     fingers["L5"].assign(None)
