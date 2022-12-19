@@ -116,6 +116,8 @@ Solution: going through the character list in order to assign to a key, assign l
 
 <img width="1255" alt="Screen Shot 2022-12-19 at 12 46 50 AM" src="https://user-images.githubusercontent.com/114739901/208384595-b1036bfa-766d-41bc-83f5-0506fa15858a.png">
 
+<img width="1261" alt="Screen Shot 2022-12-19 at 12 53 46 AM" src="https://user-images.githubusercontent.com/114739901/208386045-1f75ecbc-bdb3-40e2-9cdb-02e68e25aad6.png">
+
 <img width="1266" alt="Screen Shot 2022-12-19 at 12 46 04 AM" src="https://user-images.githubusercontent.com/114739901/208384485-1805d380-4cf3-47f9-b1aa-ebb52ba5dac3.png">
 
 > **For example, now the `e` key on the keyboard (home position for `L3`) is accessible through the point `[0][2]`, which is unique to the `e` QWERTY key only (whose new character value will be determined later)**
