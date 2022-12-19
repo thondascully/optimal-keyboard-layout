@@ -29,6 +29,16 @@ KEYBOARD_ROW_SIZE = [10, 9, 7]
 contiguous_count = {}
 frequency_letter = {}
 
+class Finger:
+    def __init__(self) -> None:
+        pass
+
+    def assign(self, x, y) -> None:
+        pass
+
+    def list(self) -> None:
+        pass
+
 class Keyboard:
     __slots__ = 'keyboard'
     keyboard: typing.List[typing.List]
