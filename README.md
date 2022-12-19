@@ -19,6 +19,8 @@ In comparison, words whose sets of digraphs (sets of two letters) are typed by d
 
 Disclaimer: words such as `reviewers` are hard on _my_ hand positioning layout. This is not universal. Unfortunately, this program is created with _my_ hand layout in mind, **so it might not be tailored for you as a reader**.
 
+More food for thought: For me, I can type `beacon` much faster than I can type `waters`. The word `waters` is typically typed using 3 fingers from the same hand. The digraph letter groups in `waters` are typed by different fingers (a single finger will not be used two keystrokes in a row), yet it is still slower to execute than the 6-letter word `beacon`. 
+
 -------------
 
 My passwords are typically `beacon` or `shadow` because every letter is typed using a different finger (or avoids the same finger usage for 2-3 letters in a row), meaning it can be typed in pretty much minimal keystroke time.
@@ -70,9 +72,17 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 <img width="1266" alt="Screen Shot 2022-12-18 at 9 29 56 PM" src="https://user-images.githubusercontent.com/114739901/208354254-835fea17-9d62-4fe1-9d9a-42e69f4d9a7e.png">
 
+> `-` is a placeholder for the correct letter assigned to the key
+
 - **Access matrix notation (2D array) version of keyboard**
 
 <img width="1254" alt="Screen Shot 2022-12-18 at 9 33 38 PM" src="https://user-images.githubusercontent.com/114739901/208354725-e6f183bd-b5d9-4daf-a3a0-5cd65844ebca.png">
+
+- **Assign specific keys to their respective finger**
+
+This is a diagram that displays the keys assigned to each finger. By default, each key is set to `-` (see note above)
+
+<img width="1269" alt="Screen Shot 2022-12-18 at 10 05 44 PM" src="https://user-images.githubusercontent.com/114739901/208358828-d866fc55-897f-4f3b-84ed-fcd861c12224.png">
 
 - **Think of algorithm:**
 
@@ -84,7 +94,6 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 6. First you assign `r` to be, say, the right index finger, and then you look at all the combinations `r` is in and do it recursively
 > Maybe breadth-first would be better, but I think this is pretty good and time-efficient
 
-
 - **Figure out which keys are typed with which fingers**
 
 ![Keyboard-33](https://user-images.githubusercontent.com/114739901/208344113-3d7f0245-8a2d-4d3a-b339-5a2e1429c1a3.jpg)
@@ -95,4 +104,10 @@ lets say for example i want the first priority key to be `F` and the second `J`.
 
 > If it doesn't: Press `N` with `R2` and press `O` with `R3`. You have to stretch your fingers! Even though `N` is supposed to be a comfortable key, this is uncomfortable! 
 
-Solution: when going through the digraphs list, you assign letters which are most commonly paired with it to more comfortable keys.
+Solution: going through the character list in order to assign to a key, assign letters which are most commonly paired with it to more comfortable keys. AKA skip to the next ordered comfort placement if the current one does not "align" with the current character's most common pair
+
+- **Display which letter is used the most between all digraphs.**
+
+<img width="1270" alt="Screen Shot 2022-12-18 at 10 31 55 PM" src="https://user-images.githubusercontent.com/114739901/208362398-f994f75f-0247-4e54-b4ac-a958f051ec3c.png">
+
+<img width="1278" alt="Screen Shot 2022-12-18 at 10 32 35 PM" src="https://user-images.githubusercontent.com/114739901/208362475-e518eefa-975d-4628-a2ea-9d4573ce9f51.png">
