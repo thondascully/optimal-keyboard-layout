@@ -81,8 +81,8 @@ if __name__ == '__main__':
             contiguous_count[word[index] + word[index + 1]] += 1
             #print(f'{word} | {word[index] + word[index + 1]}')
 
-    # Prints the sorted map to see which letter sets (size 2) are most common. 
-    print({k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])})
+    # Sorts the map by digraph frequency and removes all keys whose value is 0
+    contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
     keyboard = Keyboard()
     keyboard.print()
