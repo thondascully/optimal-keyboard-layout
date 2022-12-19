@@ -38,8 +38,9 @@ contiguous_count = {}
 frequency_letter = {}
 
 class Key:
-    __slots__ = ['letter', 'row', 'column']
+    __slots__ = ['letter', 'row', 'column', 'qwerty_key']
     letter: chr
+    qwerty_key: chr
     row: int
     column: int
 
@@ -47,6 +48,9 @@ class Key:
         self.letter = id
         self.row = row
         self.column = column
+    
+    def get_qkey(self) -> chr:
+        return self.qwerty_key
 
 class Keyboard:
     __slots__ = 'keyboard'
@@ -90,14 +94,17 @@ class Finger:
         if (key == None): return
         self.keys.append(key)
 
-    def list(self) -> None:
-        pass
-
     def get_key_row(self, index) -> int:
         return self.keys[index].row
 
     def get_key_column(self, index) -> int:
         return self.keys[index].column
+
+    def contains(self, char) -> bool:
+        for key in self.keys:
+            if key.letter == char:
+                return True
+        return False
 
 # Modified prefix sum. Takes [10, 9, 7] and returns [0, 10, 19]. Normal psum would return [10, 19, 26]
 def get_modified_rows():
@@ -140,7 +147,7 @@ def get_finger(qwerty_key: str) -> Finger:
         for key in finger.keys:
             if (key.row == row and key.column == column):
                 return finger
-                
+
 # Ugly, but necessary :( assigns each key to its respective comfort finger
 def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
     fingers["L5"].assign(None)
@@ -237,11 +244,12 @@ if __name__ == '__main__':
             print(key.letter, end="")
     print("\n")
 
-    get_finger("E")
-    get_finger("J")
-    get_finger("H")
+    print(get_finger("E"))
+    print(get_finger("J"))
+    print(get_finger("H"))
+    for key in get_finger("E").keys:
+        print(key.letter)
+
+    
 
     print("\n")
-    #for finger in fingers.values():
-    #    for key in finger.keys:
-    #        print(f'{key.letter}, {key.row}, {key.column}')
