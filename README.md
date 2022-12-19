@@ -43,6 +43,7 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 ------------
 
 ### Process
+
 - **Access a list of the 2000 most common English words**
 
 <img width="1254" alt="Screen Shot 2022-12-18 at 7 27 38 PM" src="https://user-images.githubusercontent.com/114739901/208341768-59648ecc-f83a-4bab-8d8e-bfc171c1d8aa.png">
@@ -59,11 +60,29 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 <img width="1264" alt="Screen Shot 2022-12-18 at 7 32 49 PM" src="https://user-images.githubusercontent.com/114739901/208342235-ae45744a-cfe3-4b5d-b3e3-4edb5426fb45.png">
 
-- **Populate the count map based on the token occurrences
+- **Populate the count map based on the token occurrences**
 
 <img width="1263" alt="Screen Shot 2022-12-18 at 7 34 03 PM" src="https://user-images.githubusercontent.com/114739901/208342371-095a5798-577c-4b25-82df-7febe08ee653.png">
+
+- **Think of algorithm:**
+
+1. Start by finding out which letter is used the most, so sum up all of the frequencies for the digraphs and see which letter has the highest tally
+2. Assign this to some random finger (preferably the one most easily accessible)
+3. Now, for each of the digraphs it appears in (ordered from most to least common), repeat the process (so do depth first)
+4. Ex: let's say `e` appears in the most combos, so you assign it to the left pointer finger
+5. Then you get all the things it's together with (say `r`, `s`, and `t`) in that order
+6. First you assign `r` to be, say, the right index finger, and then you look at all the combinations `r` is in and do it recursively
+> Maybe breadth-first would be better, but I think this is pretty good and time-efficient
+
 
 - **Figure out which keys are typed with which fingers**
 
 ![Keyboard-33](https://user-images.githubusercontent.com/114739901/208344113-3d7f0245-8a2d-4d3a-b339-5a2e1429c1a3.jpg)
 
+- **At this point, I started to prioritize which keys are most comfortable to press. That is, I tried finding the order in which I would assign the keys to specific fingers at the beginning of my algorithm. I discovered a cool roadblock:**
+
+lets say for example i want the first priority key to be `F` and the second `J`. This makes sense. `E` and `O` next. `R` and `U` next (closest to index home position). here comes the tricky part. Lets say the next most comfortable key to press is `N`. This only works if the letter before or after `N` in an arbitrary word is not `O`, `P`, or `L` because then i would need to stretch my two fingers apart in order to click both keys (instead of moving my hand to press the N by it self). hopefully this makes sense.
+
+> If it doesn't: Press `N` with `R2` and press `O` with `R3`. You have to stretch your fingers! Even though `N` is supposed to be a comfortable key, this is uncomfortable! 
+
+Solution: when going through the digraphs list, you assign letters which are most commonly paired with it to more comfortable keys.
