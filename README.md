@@ -78,6 +78,8 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 - **Assign specific keys to their respective finger**
 
+This is a diagram that displays the keys assigned to each finger. By default, each key is set to `-` (see note above)
+
 <img width="1269" alt="Screen Shot 2022-12-18 at 10 05 44 PM" src="https://user-images.githubusercontent.com/114739901/208358828-d866fc55-897f-4f3b-84ed-fcd861c12224.png">
 
 - **Think of algorithm:**
