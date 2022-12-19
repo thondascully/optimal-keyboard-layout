@@ -165,9 +165,9 @@ The following image represents each neighboring letter (`n` = 1..5), the QWERTY 
 
 > The most comfortable key, `F`, is set to the most common letter, `E`. Next, assign the next few most comfortable keys to the most common digraph pairings of `E` (`R`, `N`, `T`, `L`, see above). Next, move to the next most common letter, `I`. Assign the next most comfortable key to `I`, and assign the following most comfortable keys to `I`'s most common digraph pairings (`O`, `S`, ...) etc. 
 
-<img width="1381" alt="Screen Shot 2022-12-19 at 4 41 15 AM" src="https://user-images.githubusercontent.com/114739901/208428577-d87afead-b846-4fdc-b0b1-8969a51b88f8.png">
+<img width="1404" alt="Screen Shot 2022-12-19 at 4 50 38 AM" src="https://user-images.githubusercontent.com/114739901/208430194-30408223-c47a-485c-a7b1-7a31fbba82d5.png">
 
-<img width="1385" alt="Screen Shot 2022-12-19 at 4 43 55 AM" src="https://user-images.githubusercontent.com/114739901/208429061-f7abd546-bd21-4cb9-ad22-90a0d9630b1b.png">
+<img width="1405" alt="Screen Shot 2022-12-19 at 4 50 45 AM" src="https://user-images.githubusercontent.com/114739901/208430211-485a4a07-7b52-4359-a2b3-4171ec1a554c.png">
 
 
 
