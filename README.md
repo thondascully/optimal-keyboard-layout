@@ -58,3 +58,8 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 - **Populate the count map based on the token occurrences
 
 <img width="1263" alt="Screen Shot 2022-12-18 at 7 34 03 PM" src="https://user-images.githubusercontent.com/114739901/208342371-095a5798-577c-4b25-82df-7febe08ee653.png">
+
+- **Figure out which keys are typed with which fingers**
+
+![Keyboard-33](https://user-images.githubusercontent.com/114739901/208344113-3d7f0245-8a2d-4d3a-b339-5a2e1429c1a3.jpg)
+
