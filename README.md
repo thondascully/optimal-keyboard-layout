@@ -18,3 +18,15 @@ In comparison, words whose sets of neighbors (sets of two letters) are typed by 
 > For me, `reviewers` is typed as follows: `L2`, `L3`, `L2`, `R3`, `L3`, `L3`, `L3`, `L2`, `L3`. It should be noted that `L3` repeats 5 times, with 4 of them being within a 5 key register time span. This is uncomfortable!
 
 Disclaimer: words such as `reviewers` are hard on _my_ hand positioning layout. This is not universal. Unfortunately, this program is created with _my_ hand layout in mind, **so it might not be tailored for you as a reader**.
+
+-------------
+
+My passwords are typically `beacon` or `shadow` because every letter is typed using a different finger (or avoids the same finger usage for 2-3 letters in a row), meaning it can be typed in pretty much minimal keystroke time.
+
+Words like these two interest me. I want to find a keyboard layout that maximizes these types of words (that is, minimizes the amount of almost contiguous key strokes typed by the same finger).
+
+### What about Dvorak?
+With dvorak, there is no guarantee (and it is almost uncommon) for different fingers to be used for each neighboring letter of an english word.
+
+### What about Qwerty?
+I am kind of aiming for qwerty's initial goal with this layout. I think I can do better though. Additionally (not sure if possible unless using a Robot library), another solution I would suggest is including an easily accessible key on the keyboard that repeats the last letter typed. Therefore, words like `hello` can be typed without using the same finger for both `l`s. 
