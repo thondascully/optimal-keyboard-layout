@@ -167,6 +167,8 @@ The following image represents each neighboring letter (`n` = 1..5), the QWERTY 
 
 <img width="1404" alt="Screen Shot 2022-12-19 at 4 50 38 AM" src="https://user-images.githubusercontent.com/114739901/208430194-30408223-c47a-485c-a7b1-7a31fbba82d5.png">
 
+> This layout, for example, is most comfortable at lower typing speeds. Think of the word `tacos`. All of the letters are located in the most comfortable spots using two of the most comfortable fingers (`R2`, `R3`). The next goal is to make sure this never happens. We want the keys of common digraphs (`ac` for example) to be as far away from each other as possible to ensure that they can be typed using different fingers (minimizing overall keystroke time).
+
 <img width="1405" alt="Screen Shot 2022-12-19 at 4 50 45 AM" src="https://user-images.githubusercontent.com/114739901/208430211-485a4a07-7b52-4359-a2b3-4171ec1a554c.png">
 
 
