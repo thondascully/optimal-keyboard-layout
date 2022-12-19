@@ -185,8 +185,9 @@ if __name__ == '__main__':
     contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
     keyboard = Keyboard()
-
     assign_keys(keyboard.keyboard, fingers)
+
+    # Prints assigned finger diagram
     """
     for finger in fingers.values():
         print(f'\n{finger.id} | ', end="")
@@ -195,21 +196,11 @@ if __name__ == '__main__':
     print("\n")
     """
 
-    # keyboard.print(0)
-
-    """
-    for row in range(len(keyboard.keyboard)):
-        for key in keyboard.keyboard[row]:
-            print(f'{key.letter} | [{row}][{keyboard.keyboard[row].index(key)}]')
-    """
-
     # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
     for digraph in contiguous_count.keys():
         for letter in digraph:
             frequency_letter[letter] += contiguous_count[digraph]
     
-    
-    # dict(reversed(list({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.items())))
     ordered_keys = list(reversed({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.keys()))
     print(ordered_keys)
 
