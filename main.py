@@ -269,8 +269,9 @@ if __name__ == '__main__':
             next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
             #print(char)
             #print(f'{qwerty_key_status}, {next_key}, {qwerty_key_pair[next_key]}')
-            if keyboard.keyboard[qwerty_key_pair[next_key][0]][qwerty_key_pair[next_key][1]].letter == "-":
-                keyboard.keyboard[qwerty_key_pair[next_key][0]][qwerty_key_pair[next_key][1]].letter = char.upper()
+            l = qwerty_key_pair[next_key]
+            if keyboard.keyboard[l[0]][l[1]].letter == "-":
+                keyboard.keyboard[l[0]][l[1]].letter = char.upper()
                 print(f'{next_key} is being set to {char.upper()}')
                 
             #print("\n")
