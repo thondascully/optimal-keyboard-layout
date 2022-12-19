@@ -204,7 +204,6 @@ if __name__ == '__main__':
         length = len(word)        
         for index in range(length - 1):
             contiguous_count[word[index] + word[index + 1]] += 1
-            #print(f'{word} | {word[index] + word[index + 1]}')
 
     # Sorts the map by digraph frequency and removes all keys whose value is 0
     contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
@@ -233,6 +232,7 @@ if __name__ == '__main__':
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
+        
         #get_finger(key.upper())
         for digraph in filtered:
             digraph = digraph.replace(key, "")
@@ -250,6 +250,6 @@ if __name__ == '__main__':
     print("\n")
 
     for key in get_finger("E").keys:
-        #print(key.letter)
+        print(key.qwerty_key)
         pass
 
