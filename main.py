@@ -254,31 +254,20 @@ if __name__ == '__main__':
         for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
             other_chars_in_common_digraphs.append(digraph.replace(key, ""))
 
-        #print(f'{key}: {other_chars_in_common_digraphs}')
         for char in other_chars_in_common_digraphs:
             if char == '': 
                 continue
             if keyboard.contains(char.upper()):
                 continue 
-           # print(char)
             qwerty_key_status += 1 # Linear probing
-            #for k in get_finger(char.upper()).keys:
-                #print(QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26])
-                #print(f'{k.qwerty_key}', end="")
 
             next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
-            #print(char)
-            #print(f'{qwerty_key_status}, {next_key}, {qwerty_key_pair[next_key]}')
             l = qwerty_key_pair[next_key]
             if keyboard.keyboard[l[0]][l[1]].letter == "-":
                 keyboard.keyboard[l[0]][l[1]].letter = char.upper()
                 print(f'{next_key} is being set to {char.upper()}')
-                
-            #print("\n")
-        #print("done")
 
-        #qwerty_key_status += 1
-
+        qwerty_key_status += 1
     keyboard.print(0)
 
     # Prints assigned finger diagram
