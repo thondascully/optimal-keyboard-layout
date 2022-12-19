@@ -36,6 +36,10 @@ I am kind of aiming for qwerty's initial goal with this layout. I think I can do
 The 22 most common pairs of letters (based on the 2000 most common English words):  
 ```{..., 'ra': 109, 've': 111, 'or': 116, 'se': 121, 'co': 122, 'ea': 123, 'le': 126, 'an': 128, 'io': 131, 'ar': 145, 'nt': 148, 'st': 154, 'al': 156, 'ti': 168, 'at': 170, 'te': 171, 'en': 187, 'on': 214, 'in': 224, 'er': 247, 're': 260}```
 
+> **Recap on project goal**: well abstractly i want to figure out a keyboard layout (think of it as a matrix in this context... row1size10, row2size9, row3size7 with respective offsets etc) where every finger is in charge of the letters least likely to be grouped together (given the list of most common pairs)  
+>  
+> for example, `re` is paired the most. I dont want my LH index finger to be in charge of both `r` and `e` as that is not optimal and will result in slower typing speeds because of contiguous finger strokes by the same finger. therefore, `r` and `e` should be assigned to different fingers. except this has to happen for every pair as optimally as possible until everyone is as happy as possible
+
 ------------
 
 ### Process
