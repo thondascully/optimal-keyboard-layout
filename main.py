@@ -237,17 +237,26 @@ if __name__ == '__main__':
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
-        
-        #get_finger(key.upper())
-        if 
-            keyboard.keyboard[qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
+
+        # This is so bad but whatever lol
+        row = qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]][0]
+        column = qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]][1]
+        if not keyboard.contains(key.upper()) and keyboard.keyboard[row][column].letter == "-":
+            keyboard.keyboard[row][column].letter = key.upper()
+
         other_chars_in_common_digraphs = []
         for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
             other_chars_in_common_digraphs.append(digraph.replace(key, ""))
 
-        print(other_chars_in_common_digraphs)
+        #print(other_chars_in_common_digraphs)
+        for char in other_chars_in_common_digraphs:
+            if char == '': 
+                continue
+            for k in get_finger(char.upper()).keys:
+                #print(QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26])
+                pass
 
-        qwerty_key_status += 1
+        #qwerty_key_status += 1
 
     keyboard.print(0)
 
