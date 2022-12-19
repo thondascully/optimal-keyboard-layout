@@ -27,6 +27,7 @@ import parse_pdf
 
 alpha = "abcdefghijklmnopqrstuvwxyz"
 KEYBOARD_ROW_SIZE = [10, 9, 7]
+KEYBOARD_PSUM_ROWS = []
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
 QWERTY_KEY_PAIR = {}
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q', 'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
@@ -86,13 +87,13 @@ class Finger:
     def list(self) -> None:
         pass
 
-def order_rows(row_sizes):
-    new = [0] * len(row_sizes)
-    new[0] = row_sizes[0]
-    for index in list(range(1, len(row_sizes))):
-        new[index] = new[index - 1] + row_sizes[index]
+# Modified prefix sum. Takes [10, 9, 7] and returns [0, 10, 19]. Normal psum would return [10, 19, 26]
+def get_modified_rows():
+    new = [0] * (len(KEYBOARD_ROW_SIZE))
+    new[1] = KEYBOARD_ROW_SIZE[0]
+    for index in list(range(1, len(KEYBOARD_ROW_SIZE) - 1)):
+        new[index + 1] = new[index] + KEYBOARD_ROW_SIZE[index]
     return new
-
 
 # Creates a map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'. Value is zero atm
 def populate_contiguous_count():
@@ -111,12 +112,18 @@ def populate_hands():
 def populate_qwerty_pairing():
     qwerty = "qwertyuiopasdfghjklzxcvbnm"
     #'Q': (0, 0), 
-    count = 1
+    row = 0
     for letter in qwerty:
-        row = sum(KEYBOARD_ROW_SIZE) % (count)
+        #row = sum(KEYBOARD_ROW_SIZE) % (qwerty.index(letter))
+        row = 0
+        #[10, 19, 26]
+        for size in KEYBOARD_PSUM_ROWS:
+            if qwerty.index(letter) > size:
+                continue
+            row = KEYBOARD_PSUM_ROWS.index(size)
+            continue
         #print(row)
         QWERTY_KEY_PAIR[letter.upper()] = (0, 0)
-        count += 1
     #print(QWERTY_KEY_PAIR)
 
 # Ugly, but necessary :( assigns each key to its respective comfort finger
@@ -163,6 +170,7 @@ def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
 
 
 if __name__ == '__main__':
+    KEYBOARD_PSUM_ROWS = get_modified_rows()
     populate_contiguous_count()
     populate_frequency_letter()
     populate_hands()
