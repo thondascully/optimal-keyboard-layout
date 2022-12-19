@@ -25,19 +25,17 @@ Teo Honda-Scully | 2022
 import typing
 import parse_pdf
 
+alpha = "abcdefghijklmnopqrstuvwxyz"
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 contiguous_count = {}
 frequency_letter = {}
 
-class Finger:
-    def __init__(self) -> None:
-        pass
+class Key:
+    __slots__ = 'letter'
+    letter: chr
 
-    def assign(self, x, y) -> None:
-        pass
-
-    def list(self) -> None:
-        pass
+    def __init__(self, id) -> None:
+        self.letter = id
 
 class Keyboard:
     __slots__ = 'keyboard'
@@ -46,6 +44,9 @@ class Keyboard:
     def __init__(self) -> None:
         self.keyboard = [['-' for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
     
+    def assign(self, x, y) -> None:
+        pass
+
     def print_space(self, size) -> None:
         print(' ' * size, end = "")
     
@@ -66,15 +67,23 @@ class Keyboard:
             self.print_newline()
         self.print_newline()
 
+class Finger:
+    __slots__ = 'id'
+    id: str
+
+    def __init__(self, id) -> None:
+        self.id = id
+
+    def list(self) -> None:
+        pass
+
 # Creates a map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'. Value is zero atm
 def populate_contiguous_count():
-    alpha = "abcdefghijklmnopqrstuvwxyz"
     for first in alpha:
         for second in alpha:
             contiguous_count[first + second] = 0
 
 def populate_frequency_letter():
-    alpha = "abcdefghijklmnopqrstuvwxyz"
     for letter in alpha:
         frequency_letter[letter] = 0
 
