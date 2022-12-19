@@ -26,7 +26,7 @@ import typing
 import parse_pdf
 
 alpha = "abcdefghijklmnopqrstuvwxyz"
-DIGRAPH_GROUP_ACCT_AMT = 4
+DIGRAPH_GROUP_ACCT_AMT = 5
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 KEYBOARD_PSUM_ROWS = []
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
@@ -237,14 +237,18 @@ if __name__ == '__main__':
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
-
         letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         row = qwerty_key_pair[letter][0]
         column = qwerty_key_pair[letter][1]
-        if not keyboard.contains(key.upper()) and keyboard.keyboard[row][column].letter == "-":
+        while keyboard.keyboard[row][column].letter != "-":
+            qwerty_key_status += 1 # Linear probing
+            letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
+            row = qwerty_key_pair[letter][0]
+            column = qwerty_key_pair[letter][1]
+
+        if not keyboard.contains(key.upper()):
             keyboard.keyboard[row][column].letter = key.upper()
             print(f'{letter} is being set to {key.upper()}')
-
 
         other_chars_in_common_digraphs = []
         for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
@@ -255,20 +259,22 @@ if __name__ == '__main__':
             if char == '': 
                 continue
             if keyboard.contains(char.upper()):
-                continue
+                continue 
            # print(char)
             qwerty_key_status += 1 # Linear probing
             #for k in get_finger(char.upper()).keys:
                 #print(QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26])
                 #print(f'{k.qwerty_key}', end="")
+
             next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
             #print(char)
             #print(f'{qwerty_key_status}, {next_key}, {qwerty_key_pair[next_key]}')
-            if not keyboard.keyboard[qwerty_key_pair[next_key][0]][qwerty_key_pair[next_key][1]].letter == "-":
+            if keyboard.keyboard[qwerty_key_pair[next_key][0]][qwerty_key_pair[next_key][1]].letter == "-":
                 keyboard.keyboard[qwerty_key_pair[next_key][0]][qwerty_key_pair[next_key][1]].letter = char.upper()
                 print(f'{next_key} is being set to {char.upper()}')
                 
             #print("\n")
+        #print("done")
 
         #qwerty_key_status += 1
 
