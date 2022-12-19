@@ -98,8 +98,8 @@ def populate_hands():
     for finger in FINGER_TAGS:
         fingers[finger] = Finger(finger)
 
+# Ugly, but necessary :( assigns each key to its respective comfort finger
 def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
-
     fingers["L5"].assign(None)
     
     fingers["L4"].assign(keyboard[0][0])
