@@ -92,7 +92,6 @@ This is a diagram that displays the keys assigned to each finger. By default, ea
 6. First you assign `r` to be, say, the right index finger, and then you look at all the combinations `r` is in and do it recursively
 > Maybe breadth-first would be better, but I think this is pretty good and time-efficient
 
-
 - **Figure out which keys are typed with which fingers**
 
 ![Keyboard-33](https://user-images.githubusercontent.com/114739901/208344113-3d7f0245-8a2d-4d3a-b339-5a2e1429c1a3.jpg)
@@ -104,3 +103,9 @@ lets say for example i want the first priority key to be `F` and the second `J`.
 > If it doesn't: Press `N` with `R2` and press `O` with `R3`. You have to stretch your fingers! Even though `N` is supposed to be a comfortable key, this is uncomfortable! 
 
 Solution: when going through the digraphs list, you assign letters which are most commonly paired with it to more comfortable keys.
+
+- **Display which letter is used the most between all digraphs.**
+
+<img width="1270" alt="Screen Shot 2022-12-18 at 10 31 55 PM" src="https://user-images.githubusercontent.com/114739901/208362398-f994f75f-0247-4e54-b4ac-a958f051ec3c.png">
+
+<img width="1278" alt="Screen Shot 2022-12-18 at 10 32 35 PM" src="https://user-images.githubusercontent.com/114739901/208362475-e518eefa-975d-4628-a2ea-9d4573ce9f51.png">
