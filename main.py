@@ -28,6 +28,7 @@ import parse_pdf
 alpha = "abcdefghijklmnopqrstuvwxyz"
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
+QWERTY_KEY_PAIR = {}
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q', 'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 fingers = {}
 contiguous_count = {}
@@ -85,6 +86,14 @@ class Finger:
     def list(self) -> None:
         pass
 
+def order_rows(row_sizes):
+    new = [0] * len(row_sizes)
+    new[0] = row_sizes[0]
+    for index in list(range(1, len(row_sizes))):
+        new[index] = new[index - 1] + row_sizes[index]
+    return new
+
+
 # Creates a map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'. Value is zero atm
 def populate_contiguous_count():
     for first in alpha:
@@ -98,6 +107,17 @@ def populate_frequency_letter():
 def populate_hands():
     for finger in FINGER_TAGS:
         fingers[finger] = Finger(finger)
+
+def populate_qwerty_pairing():
+    qwerty = "qwertyuiopasdfghjklzxcvbnm"
+    #'Q': (0, 0), 
+    count = 1
+    for letter in qwerty:
+        row = sum(KEYBOARD_ROW_SIZE) % (count)
+        #print(row)
+        QWERTY_KEY_PAIR[letter.upper()] = (0, 0)
+        count += 1
+    #print(QWERTY_KEY_PAIR)
 
 # Ugly, but necessary :( assigns each key to its respective comfort finger
 def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
@@ -146,6 +166,7 @@ if __name__ == '__main__':
     populate_contiguous_count()
     populate_frequency_letter()
     populate_hands()
+    populate_qwerty_pairing()
 
     # Every time a specific set of two contiguous characters pop up while iterating through a word in
     # raw_pdf_top_2000.txt, ++ the frequency count in contiguous_count map according to respective key
@@ -162,11 +183,13 @@ if __name__ == '__main__':
     keyboard = Keyboard()
 
     assign_keys(keyboard.keyboard, fingers)
+    """
     for finger in fingers.values():
         print(f'\n{finger.id} | ', end="")
         for key in finger.keys:
             print(key.letter, end="")
     print("\n")
+    """
 
     # keyboard.print(0)
 
@@ -182,5 +205,5 @@ if __name__ == '__main__':
             frequency_letter[letter] += contiguous_count[digraph]
     
     for char in dict(reversed(list({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.items()))).keys():
-        
+        #print(char)
         pass
