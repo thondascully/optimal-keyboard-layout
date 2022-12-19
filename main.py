@@ -55,20 +55,16 @@ class Keyboard:
     
     # Prints keyboard layout (what would be qwertyuiop \n asdfghjkl \n zxcvbnm)
     # Rows are determined by KEYBOARD_ROW_SIZE iter on init
-    def print(self) -> None:
+    # If (is_raw), do not print indents that reflect a realistic keyboard.
+    def print(self, is_raw) -> None:
         self.print_newline()
         for row in range(len(self.keyboard)):
-            self.print_space(row)
+            if (not is_raw): 
+                self.print_space(row)
             for key in self.keyboard[row]:
                 self.print_key(key.letter)
             self.print_newline()
         self.print_newline()
-
-    def raw_print(self) -> None:
-        for row in range(len(self.keyboard)):
-            for key in self.keyboard[row]:
-                self.print_key(key.letter)
-            self.print_newline()
 
 class Finger:
     __slots__ = 'id'
@@ -107,6 +103,5 @@ if __name__ == '__main__':
     contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
     keyboard = Keyboard()
-    keyboard.print()
-    keyboard.raw_print()
+    keyboard.print(0)
 
