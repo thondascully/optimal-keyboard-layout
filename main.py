@@ -44,6 +44,8 @@ class Keyboard:
     def print_newline(self) -> None:
         print("")
     
+    # Prints keyboard layout (what would be qwertyuiop \n asdfghjkl \n zxcvbnm)
+    # Rows are determined by KEYBOARD_ROW_SIZE iter on init
     def print(self) -> str:
         self.print_newline()
         for row in range(len(self.keyboard)):
@@ -53,6 +55,7 @@ class Keyboard:
             self.print_newline()
         self.print_newline()
 
+# Creates a map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'. Value is zero atm
 def populate_contiguous_count():
     alpha = "abcdefghijklmnopqrstuvwxyz"
     for first in alpha:
@@ -62,12 +65,16 @@ def populate_contiguous_count():
 if __name__ == '__main__':
     populate_contiguous_count()
 
+    # Every time a specific set of two contiguous characters pop up while iterating through a word in
+    # raw_pdf_top_2000.txt, ++ the frequency count in contiguous_count map according to respective key
+    # EX: "hello" contains "he". Increase the count (value) of "he" key in the contiguous_count map by 1
     for word in parse_pdf.get_words():
         length = len(word)            
         for index in range(length - 1):
             contiguous_count[word[index] + word[index + 1]] += 1
             print(f'{word} | {word[index] + word[index + 1]}')
 
+    # Prints the sorted map to see which letter sets (size 2) are most common. 
     print({k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])})
 
     keyboard = Keyboard()
