@@ -27,6 +27,7 @@ import parse_pdf
 
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 contiguous_count = {}
+frequency_letter = {}
 
 class Keyboard:
     __slots__ = 'keyboard'
@@ -62,17 +63,23 @@ def populate_contiguous_count():
         for second in alpha:
             contiguous_count[first + second] = 0
 
+def populate_frequency_letter():
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    for letter in alpha:
+        frequency_letter[letter] = 0
+
 if __name__ == '__main__':
     populate_contiguous_count()
+    populate_frequency_letter()
 
     # Every time a specific set of two contiguous characters pop up while iterating through a word in
     # raw_pdf_top_2000.txt, ++ the frequency count in contiguous_count map according to respective key
     # EX: "hello" contains "he". Increase the count (value) of "he" key in the contiguous_count map by 1
     for word in parse_pdf.get_words():
-        length = len(word)            
+        length = len(word)        
         for index in range(length - 1):
             contiguous_count[word[index] + word[index + 1]] += 1
-            print(f'{word} | {word[index] + word[index + 1]}')
+            #print(f'{word} | {word[index] + word[index + 1]}')
 
     # Prints the sorted map to see which letter sets (size 2) are most common. 
     print({k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])})
