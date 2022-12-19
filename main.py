@@ -111,20 +111,18 @@ def populate_hands():
 
 def populate_qwerty_pairing():
     qwerty = "qwertyuiopasdfghjklzxcvbnm"
-    #'Q': (0, 0), 
-    row = 0
+    row: int
     for letter in qwerty:
-        column = 0
+        column: int
         for size in list(reversed(KEYBOARD_PSUM_ROWS)):
             if qwerty.index(letter) + 1 > size:
                 row = KEYBOARD_PSUM_ROWS.index(size)
                 column = size
                 break
-        print(f'LETTER: {letter} | ROW: {row} | COLUMN: {qwerty.index(letter) - (column)}')
-        QWERTY_KEY_PAIR[letter.upper()] = (row, 0)
+        QWERTY_KEY_PAIR[letter.upper()] = (row, qwerty.index(letter) - (column))
 
 # Ugly, but necessary :( assigns each key to its respective comfort finger
-def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
+def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger])
     fingers["L5"].assign(None)
     
     fingers["L4"].assign(keyboard[0][0])
