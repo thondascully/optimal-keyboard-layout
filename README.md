@@ -158,3 +158,16 @@ For `e`, the most common digraphs are `re`, `er`, `en`, `te`, and `le` (`n` = 5 
 The following image represents each neighboring letter (`n` = 1..5), the QWERTY key it will be assigned to (assuming it is not taken), and the position of the QWERTY key on the keyboard.
 
 <img width="1382" alt="Screen Shot 2022-12-19 at 3 50 23 AM" src="https://user-images.githubusercontent.com/114739901/208419801-c53516ec-6e2a-4055-99aa-b22c0c3bfa8d.png">
+
+- **Algorithm implementation (no finger neighbor constraint yet)! Yay!**
+
+<img width="1386" alt="Screen Shot 2022-12-19 at 4 40 56 AM" src="https://user-images.githubusercontent.com/114739901/208428529-ae936713-6fc9-4a85-8091-badf9e42ed67.png">
+
+> The most comfortable key, `F`, is set to the most common letter, `E`. Next, assign the next few most comfortable keys to the most common digraph pairings of `E` (`R`, `N`, `T`, `L`, see above). Next, move to the next most common letter, `I`. Assign the next most comfortable key to `I`, and assign the following most comfortable keys to `I`'s most common digraph pairings (`O`, `S`, ...) etc. 
+
+<img width="1381" alt="Screen Shot 2022-12-19 at 4 41 15 AM" src="https://user-images.githubusercontent.com/114739901/208428577-d87afead-b846-4fdc-b0b1-8969a51b88f8.png">
+
+<img width="1385" alt="Screen Shot 2022-12-19 at 4 43 55 AM" src="https://user-images.githubusercontent.com/114739901/208429061-f7abd546-bd21-4cb9-ad22-90a0d9630b1b.png">
+
+
+
