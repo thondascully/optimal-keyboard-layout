@@ -70,6 +70,8 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 <img width="1266" alt="Screen Shot 2022-12-18 at 9 29 56 PM" src="https://user-images.githubusercontent.com/114739901/208354254-835fea17-9d62-4fe1-9d9a-42e69f4d9a7e.png">
 
+> `-` is a placeholder for the correct letter assigned to the key
+
 - **Access matrix notation (2D array) version of keyboard**
 
 <img width="1254" alt="Screen Shot 2022-12-18 at 9 33 38 PM" src="https://user-images.githubusercontent.com/114739901/208354725-e6f183bd-b5d9-4daf-a3a0-5cd65844ebca.png">
