@@ -102,7 +102,7 @@ lets say for example i want the first priority key to be `F` and the second `J`.
 
 > If it doesn't: Press `N` with `R2` and press `O` with `R3`. You have to stretch your fingers! Even though `N` is supposed to be a comfortable key, this is uncomfortable! 
 
-Solution: when going through the digraphs list, you assign letters which are most commonly paired with it to more comfortable keys.
+Solution: going through the character list in order to assign to a key, assign letters which are most commonly paired with it to more comfortable keys. AKA skip to the next ordered comfort placement if the current one does not "align" with the current character's most common pair
 
 - **Display which letter is used the most between all digraphs.**
 
