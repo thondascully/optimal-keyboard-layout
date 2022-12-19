@@ -130,4 +130,9 @@ Solution: going through the character list in order to assign to a key, assign l
 
 <img width="1266" alt="Screen Shot 2022-12-19 at 1 57 43 AM" src="https://user-images.githubusercontent.com/114739901/208398828-390cb09f-de02-4a0a-a06f-060449c127be.png">
 
+- **Create a way to access QWERTY key in finger notation based on character**
+
+<img width="1267" alt="Screen Shot 2022-12-19 at 2 40 26 AM" src="https://user-images.githubusercontent.com/114739901/208407622-df029a6d-cb12-4e66-a483-4c69f6b8a793.png">
+
+<img width="1271" alt="Screen Shot 2022-12-19 at 2 40 33 AM" src="https://user-images.githubusercontent.com/114739901/208407645-a6157fde-b009-48d7-864f-1392dc5ff9ee.png">
 
