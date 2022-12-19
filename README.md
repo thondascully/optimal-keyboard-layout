@@ -130,6 +130,10 @@ Solution: going through the character list in order to assign to a key, assign l
 
 <img width="1266" alt="Screen Shot 2022-12-19 at 1 57 43 AM" src="https://user-images.githubusercontent.com/114739901/208398828-390cb09f-de02-4a0a-a06f-060449c127be.png">
 
+- **Filter the iterating char from the digraph groupings**
+
+<img width="1392" alt="Screen Shot 2022-12-19 at 3 42 11 AM" src="https://user-images.githubusercontent.com/114739901/208418391-645333fa-ea83-4569-8dd8-04a79fe6f069.png">
+
 - **Create a way to access QWERTY key in finger notation based on character**
 
 <img width="1271" alt="Screen Shot 2022-12-19 at 2 40 33 AM" src="https://user-images.githubusercontent.com/114739901/208407645-a6157fde-b009-48d7-864f-1392dc5ff9ee.png">
