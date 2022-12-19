@@ -31,6 +31,7 @@ KEYBOARD_PSUM_ROWS = []
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
 QWERTY_KEY_PAIR = {}
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q', 'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
+qwerty_key_status = []
 fingers = {}
 contiguous_count = {}
 frequency_letter = {}
@@ -122,7 +123,7 @@ def populate_qwerty_pairing():
         QWERTY_KEY_PAIR[letter.upper()] = (row, qwerty.index(letter) - (column))
 
 # Ugly, but necessary :( assigns each key to its respective comfort finger
-def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger])
+def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
     fingers["L5"].assign(None)
     
     fingers["L4"].assign(keyboard[0][0])
@@ -207,6 +208,13 @@ if __name__ == '__main__':
         for letter in digraph:
             frequency_letter[letter] += contiguous_count[digraph]
     
+    # 0 indicates not assigned. 1 indicates assigned. Can be changed to a running count with an inequality
+    qwerty_key_status = [0] * len(alpha)
     for char in dict(reversed(list({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.items()))).keys():
         #print(char)
         pass
+    
+    print("\n")
+    print(QWERTY_KEY_PAIR)
+    print("\n")
+
