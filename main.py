@@ -30,7 +30,7 @@ DIGRAPH_GROUP_ACCT_AMT = 6
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 KEYBOARD_PSUM_ROWS = []
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
-QWERTY_KEY_PAIR = {}
+qwerty_key_pair = {}
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q', 'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 qwerty_key_status = 0
 fingers = {}
@@ -138,11 +138,11 @@ def populate_qwerty_pairing():
                 row = KEYBOARD_PSUM_ROWS.index(size)
                 column = size
                 break
-        QWERTY_KEY_PAIR[letter.upper()] = (row, qwerty.index(letter) - (column))
+        qwerty_key_pair[letter.upper()] = (row, qwerty.index(letter) - (column))
 
 def get_finger(qwerty_key: str) -> Finger:
-    row = QWERTY_KEY_PAIR[qwerty_key][0]
-    column = QWERTY_KEY_PAIR[qwerty_key][1]
+    row = qwerty_key_pair[qwerty_key][0]
+    column = qwerty_key_pair[qwerty_key][1]
     for finger in fingers.values():
         for key in finger.keys:
             if (key.row == row and key.column == column):
@@ -212,6 +212,11 @@ if __name__ == '__main__':
     keyboard = Keyboard()
     assign_keys(keyboard.keyboard, fingers)
 
+    inv_q_pair = {v: k for k, v in qwerty_key_pair.items()}
+    for row in keyboard.keyboard:
+        for key in row:
+            key.qwerty_key = inv_q_pair[tuple(map(int, [key.row, key.column]))] # LOL
+
     # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
     for digraph in contiguous_count.keys():
         for letter in digraph:
@@ -224,7 +229,7 @@ if __name__ == '__main__':
   
         # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot, 
         # as the 'F' QWERTY key is the most comfortable (subjective). 
-        # The 'F' QWERTY key exists at QWERTY_KEY_PAIR['F'] point, which is (1, 3). Therefore,
+        # The 'F' QWERTY key exists at qwerty_key_pair['F'] point, which is (1, 3). Therefore,
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
@@ -232,7 +237,7 @@ if __name__ == '__main__':
         for digraph in filtered:
             digraph = digraph.replace(key, "")
             #print(digraph)
-        #keyboard.keyboard[QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
+        #keyboard.keyboard[qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
         qwerty_key_status += 1
 
     keyboard.print(0)
@@ -244,12 +249,7 @@ if __name__ == '__main__':
             print(key.letter, end="")
     print("\n")
 
-    print(get_finger("E"))
-    print(get_finger("J"))
-    print(get_finger("H"))
     for key in get_finger("E").keys:
-        print(key.letter)
+        #print(key.letter)
+        pass
 
-    
-
-    print("\n")
