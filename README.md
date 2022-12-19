@@ -122,3 +122,11 @@ Solution: going through the character list in order to assign to a key, assign l
 
 > **For example, now the `e` key on the keyboard (home position for `L3`) is accessible through the point `[0][2]`, which is unique to the `e` QWERTY key only (whose new character value will be determined later)**
 
+- **Create a subjective ordered list of the QWERTY keys i find most comfortable to press given my personal hand positioning
+
+<img width="785" alt="Screen Shot 2022-12-19 at 1 54 07 AM" src="https://user-images.githubusercontent.com/114739901/208398096-3a6d0d91-c061-431a-bd9f-6ca2f5f47e2e.png">
+
+- **Group each char together with the digraphs that contain the char**
+
+<img width="1274" alt="Screen Shot 2022-12-19 at 1 53 20 AM" src="https://user-images.githubusercontent.com/114739901/208398120-102f18b2-1b91-47c2-ae2a-d5b125ed322e.png">
+
