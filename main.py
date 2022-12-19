@@ -221,7 +221,8 @@ if __name__ == '__main__':
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
-
+        keyboard.keyboard[QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key
+        qwerty_key_status += 1
 
     print("\n")
     print(QWERTY_KEY_PAIR)
