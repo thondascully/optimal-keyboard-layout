@@ -19,6 +19,8 @@ In comparison, words whose sets of digraphs (sets of two letters) are typed by d
 
 Disclaimer: words such as `reviewers` are hard on _my_ hand positioning layout. This is not universal. Unfortunately, this program is created with _my_ hand layout in mind, **so it might not be tailored for you as a reader**.
 
+More food for thought: For me, I can type `beacon` much faster than I can type `water`. The word `water` is typically typed using 3 fingers from the same hand. Normally, the digraph letter groups are typed by different fingers (a finger will not be used two keystrokes in a row), yet it is still slower to execute than the 6-letter word `beacon`. 
+
 -------------
 
 My passwords are typically `beacon` or `shadow` because every letter is typed using a different finger (or avoids the same finger usage for 2-3 letters in a row), meaning it can be typed in pretty much minimal keystroke time.
