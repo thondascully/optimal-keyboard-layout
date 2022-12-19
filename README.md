@@ -74,6 +74,10 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 <img width="1254" alt="Screen Shot 2022-12-18 at 9 33 38 PM" src="https://user-images.githubusercontent.com/114739901/208354725-e6f183bd-b5d9-4daf-a3a0-5cd65844ebca.png">
 
+- **Assign specific keys to their respective finger**
+
+<img width="1269" alt="Screen Shot 2022-12-18 at 10 05 44 PM" src="https://user-images.githubusercontent.com/114739901/208358828-d866fc55-897f-4f3b-84ed-fcd861c12224.png">
+
 - **Think of algorithm:**
 
 1. Start by finding out which letter is used the most, so sum up all of the frequencies for the digraphs and see which letter has the highest tally
