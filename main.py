@@ -31,7 +31,7 @@ KEYBOARD_PSUM_ROWS = []
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
 QWERTY_KEY_PAIR = {}
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q', 'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
-qwerty_key_status = []
+qwerty_key_status = 0
 fingers = {}
 contiguous_count = {}
 frequency_letter = {}
@@ -208,13 +208,23 @@ if __name__ == '__main__':
         for letter in digraph:
             frequency_letter[letter] += contiguous_count[digraph]
     
-    # 0 indicates not assigned. 1 indicates assigned. Can be changed to a running count with an inequality
-    qwerty_key_status = [0] * len(alpha)
-    for char in dict(reversed(list({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.items()))).keys():
-        #print(char)
-        pass
     
+    # dict(reversed(list({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.items())))
+    ordered_keys = list(reversed({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.keys()))
+    print(ordered_keys)
+
+    for key in ordered_keys:
+        key = key.upper()
+        # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot, 
+        # as the 'F' QWERTY key is the most comfortable (subjective). 
+        # The 'F' QWERTY key exists at QWERTY_KEY_PAIR['F'] point, which is (1, 3). Therefore,
+        # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
+        # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
+        # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
+
+
     print("\n")
     print(QWERTY_KEY_PAIR)
     print("\n")
+    keyboard.print(0)
 
