@@ -39,13 +39,10 @@ class Key:
 
 class Keyboard:
     __slots__ = 'keyboard'
-    keyboard: typing.List[typing.List]
+    keyboard: typing.List[typing.List[chr]]
 
     def __init__(self) -> None:
-        self.keyboard = [['-' for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
-    
-    def assign(self, x, y) -> None:
-        pass
+        self.keyboard = [[Key('-') for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
 
     def print_space(self, size) -> None:
         print(' ' * size, end = "")
@@ -63,7 +60,7 @@ class Keyboard:
         for row in range(len(self.keyboard)):
             self.print_space(row)
             for key in self.keyboard[row]:
-                self.print_key(key)
+                self.print_key(key.letter)
             self.print_newline()
         self.print_newline()
 
