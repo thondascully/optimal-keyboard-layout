@@ -114,17 +114,12 @@ def populate_qwerty_pairing():
     #'Q': (0, 0), 
     row = 0
     for letter in qwerty:
-        #row = sum(KEYBOARD_ROW_SIZE) % (qwerty.index(letter))
-        row = 0
-        #[10, 19, 26]
-        for size in KEYBOARD_PSUM_ROWS:
-            if qwerty.index(letter) > size:
-                continue
-            row = KEYBOARD_PSUM_ROWS.index(size)
-            continue
-        #print(row)
-        QWERTY_KEY_PAIR[letter.upper()] = (0, 0)
-    #print(QWERTY_KEY_PAIR)
+        for size in list(reversed(KEYBOARD_PSUM_ROWS)):
+            if qwerty.index(letter) + 1 > size:
+                row = KEYBOARD_PSUM_ROWS.index(size)
+                break
+        print(f'LETTER: {letter} | ROW: {row}' | )
+        QWERTY_KEY_PAIR[letter.upper()] = (row, 0)
 
 # Ugly, but necessary :( assigns each key to its respective comfort finger
 def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
