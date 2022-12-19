@@ -26,6 +26,7 @@ import typing
 import parse_pdf
 
 alpha = "abcdefghijklmnopqrstuvwxyz"
+DIGRAPH_GROUP_ACCT_AMT = 6
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 KEYBOARD_PSUM_ROWS = []
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
@@ -37,18 +38,22 @@ contiguous_count = {}
 frequency_letter = {}
 
 class Key:
-    __slots__ = 'letter'
+    __slots__ = ['letter', 'row', 'column']
     letter: chr
+    row: int
+    column: int
 
-    def __init__(self, id) -> None:
+    def __init__(self, id, row, column) -> None:
         self.letter = id
+        self.row = row
+        self.column = column
 
 class Keyboard:
     __slots__ = 'keyboard'
     keyboard: typing.List[typing.List[chr]]
 
     def __init__(self) -> None:
-        self.keyboard = [[Key('-') for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
+        self.keyboard = [[Key('-', i, j) for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
 
     def print_space(self, size) -> None:
         print(' ' * size, end = "")
@@ -87,6 +92,12 @@ class Finger:
 
     def list(self) -> None:
         pass
+
+    def get_key_row(self, index) -> int:
+        return self.keys[index].row
+
+    def get_key_column(self, index) -> int:
+        return self.keys[index].column
 
 # Modified prefix sum. Takes [10, 9, 7] and returns [0, 10, 19]. Normal psum would return [10, 19, 26]
 def get_modified_rows():
@@ -164,7 +175,6 @@ def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
 
     fingers["R5"].assign(None)
 
-
 if __name__ == '__main__':
     KEYBOARD_PSUM_ROWS = get_modified_rows()
     populate_contiguous_count()
@@ -187,36 +197,35 @@ if __name__ == '__main__':
     keyboard = Keyboard()
     assign_keys(keyboard.keyboard, fingers)
 
-    # Prints assigned finger diagram
-    """
-    for finger in fingers.values():
-        print(f'\n{finger.id} | ', end="")
-        for key in finger.keys:
-            print(key.letter, end="")
-    print("\n")
-    """
-
     # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
     for digraph in contiguous_count.keys():
         for letter in digraph:
             frequency_letter[letter] += contiguous_count[digraph]
     
     ordered_keys = list(reversed({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.keys()))
-    print(ordered_keys)
 
     for key in ordered_keys:
-        key = key.upper()
+        filtered = list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]
+  
         # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot, 
         # as the 'F' QWERTY key is the most comfortable (subjective). 
         # The 'F' QWERTY key exists at QWERTY_KEY_PAIR['F'] point, which is (1, 3). Therefore,
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
-        keyboard.keyboard[QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key
+
+        for digraph in filtered:
+            digraph = digraph.replace(key, "")
+            print(digraph)
+        keyboard.keyboard[QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
         qwerty_key_status += 1
 
-    print("\n")
-    print(QWERTY_KEY_PAIR)
-    print("\n")
     keyboard.print(0)
+
+    # Prints assigned finger diagram
+    for finger in fingers.values():
+        print(f'\n{finger.id} | ', end="")
+        for key in finger.keys:
+            print(key.letter, end="")
+    print("\n")
 
