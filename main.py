@@ -59,6 +59,13 @@ class Keyboard:
     def __init__(self) -> None:
         self.keyboard = [[Key('-', j, i) for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
 
+    def contains(self, char) -> bool:
+        for row in self.keyboard:
+            for key in row:
+                if key.letter == char:
+                    return True
+        return False
+
     def print_space(self, size) -> None:
         print(' ' * size, end = "")
     
@@ -224,8 +231,6 @@ if __name__ == '__main__':
     ordered_keys = list(reversed({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.keys()))
 
     for key in ordered_keys:
-        filtered = list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]
-  
         # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot, 
         # as the 'F' QWERTY key is the most comfortable (subjective). 
         # The 'F' QWERTY key exists at qwerty_key_pair['F'] point, which is (1, 3). Therefore,
@@ -234,10 +239,14 @@ if __name__ == '__main__':
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
         
         #get_finger(key.upper())
-        for digraph in filtered:
-            digraph = digraph.replace(key, "")
-            #print(digraph)
-        #keyboard.keyboard[qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
+        if 
+            keyboard.keyboard[qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][qwerty_key_pair[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
+        other_chars_in_common_digraphs = []
+        for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
+            other_chars_in_common_digraphs.append(digraph.replace(key, ""))
+
+        print(other_chars_in_common_digraphs)
+
         qwerty_key_status += 1
 
     keyboard.print(0)
@@ -248,8 +257,4 @@ if __name__ == '__main__':
         for key in finger.keys:
             print(key.letter, end="")
     print("\n")
-
-    for key in get_finger("E").keys:
-        print(key.qwerty_key)
-        pass
-
+        
