@@ -136,3 +136,9 @@ Solution: going through the character list in order to assign to a key, assign l
 
 <img width="1271" alt="Screen Shot 2022-12-19 at 2 40 33 AM" src="https://user-images.githubusercontent.com/114739901/208407645-a6157fde-b009-48d7-864f-1392dc5ff9ee.png">
 
+- **Display other QWERTY keys (physical keys) assigned to specific QWERTY key**
+
+<img width="1311" alt="Screen Shot 2022-12-19 at 3 07 11 AM" src="https://user-images.githubusercontent.com/114739901/208412509-e5751cfd-9d80-4d87-8f97-051059d24689.png">
+
+<img width="1182" alt="Screen Shot 2022-12-19 at 3 07 30 AM" src="https://user-images.githubusercontent.com/114739901/208412559-cba2590f-47ed-4528-b35c-91cea591923b.png">
+
