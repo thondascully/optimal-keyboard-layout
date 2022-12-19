@@ -53,7 +53,7 @@ class Keyboard:
     keyboard: typing.List[typing.List[chr]]
 
     def __init__(self) -> None:
-        self.keyboard = [[Key('-', i, j) for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
+        self.keyboard = [[Key('-', j, i) for i in range(KEYBOARD_ROW_SIZE[j])] for j in range(len(KEYBOARD_ROW_SIZE))] 
 
     def print_space(self, size) -> None:
         print(' ' * size, end = "")
@@ -132,6 +132,18 @@ def populate_qwerty_pairing():
                 column = size
                 break
         QWERTY_KEY_PAIR[letter.upper()] = (row, qwerty.index(letter) - (column))
+
+def get_finger(qwerty_key: str) -> Finger:
+    row = QWERTY_KEY_PAIR[qwerty_key][0]
+    column = QWERTY_KEY_PAIR[qwerty_key][1]
+    print(f'\n{qwerty_key}: {row}, {column}')
+    for finger in fingers.values():
+        for key in finger.keys:
+            if (key.row == row and key.column == column):
+                for tag, f in fingers.items():
+                    if f == finger:
+                        print(tag)
+
 
 # Ugly, but necessary :( assigns each key to its respective comfort finger
 def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
@@ -213,11 +225,11 @@ if __name__ == '__main__':
         # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
         # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
         # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
-
+        #get_finger(key.upper())
         for digraph in filtered:
             digraph = digraph.replace(key, "")
-            print(digraph)
-        keyboard.keyboard[QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
+            #print(digraph)
+        #keyboard.keyboard[QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][0]][QWERTY_KEY_PAIR[QWERTY_KEY_COMFORT_ORDER[qwerty_key_status]][1]].letter = key.upper()
         qwerty_key_status += 1
 
     keyboard.print(0)
@@ -229,3 +241,11 @@ if __name__ == '__main__':
             print(key.letter, end="")
     print("\n")
 
+    get_finger("E")
+    get_finger("J")
+    get_finger("H")
+
+    print("\n")
+    #for finger in fingers.values():
+    #    for key in finger.keys:
+    #        print(f'{key.letter}, {key.row}, {key.column}')
