@@ -52,7 +52,7 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 <img width="1259" alt="Screen Shot 2022-12-18 at 7 30 21 PM" src="https://user-images.githubusercontent.com/114739901/208342027-7d136f48-53ff-4619-9fb4-142f4fa4f970.png">
 
-- **Tokenize the words into groups of two letters
+- **Tokenize the words into groups of two letters**
 
 <img width="1255" alt="Screen Shot 2022-12-18 at 7 26 55 PM" src="https://user-images.githubusercontent.com/114739901/208341705-e5d7590d-0a28-4398-9f45-2aa13d799031.png">
 
