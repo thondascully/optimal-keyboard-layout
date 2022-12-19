@@ -51,4 +51,10 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 
 <img width="1255" alt="Screen Shot 2022-12-18 at 7 26 55 PM" src="https://user-images.githubusercontent.com/114739901/208341705-e5d7590d-0a28-4398-9f45-2aa13d799031.png">
 
+- **Create a frequency count map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'**
 
+<img width="1264" alt="Screen Shot 2022-12-18 at 7 32 49 PM" src="https://user-images.githubusercontent.com/114739901/208342235-ae45744a-cfe3-4b5d-b3e3-4edb5426fb45.png">
+
+- **Populate the count map based on the token occurrences
+
+<img width="1263" alt="Screen Shot 2022-12-18 at 7 34 03 PM" src="https://user-images.githubusercontent.com/114739901/208342371-095a5798-577c-4b25-82df-7febe08ee653.png">
