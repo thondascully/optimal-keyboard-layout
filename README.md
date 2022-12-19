@@ -126,13 +126,48 @@ Solution: going through the character list in order to assign to a key, assign l
 
 <img width="785" alt="Screen Shot 2022-12-19 at 1 54 07 AM" src="https://user-images.githubusercontent.com/114739901/208398096-3a6d0d91-c061-431a-bd9f-6ca2f5f47e2e.png">
 
-- **Group each char together with the digraphs that contain the char. Order the digraphs by occurrence frequency. Only show the first n amount (n = 5 in this case)**
-
-<img width="1266" alt="Screen Shot 2022-12-19 at 1 57 43 AM" src="https://user-images.githubusercontent.com/114739901/208398828-390cb09f-de02-4a0a-a06f-060449c127be.png">
-
 - **Create a way to access QWERTY key in finger notation based on character**
+
+<img width="1271" alt="Screen Shot 2022-12-19 at 2 40 33 AM" src="https://user-images.githubusercontent.com/114739901/208407645-a6157fde-b009-48d7-864f-1392dc5ff9ee.png">
 
 <img width="1267" alt="Screen Shot 2022-12-19 at 2 40 26 AM" src="https://user-images.githubusercontent.com/114739901/208407622-df029a6d-cb12-4e66-a483-4c69f6b8a793.png">
 
-<img width="1271" alt="Screen Shot 2022-12-19 at 2 40 33 AM" src="https://user-images.githubusercontent.com/114739901/208407645-a6157fde-b009-48d7-864f-1392dc5ff9ee.png">
+- **Display other QWERTY keys (physical keys) assigned to specific QWERTY key**
+
+<img width="1311" alt="Screen Shot 2022-12-19 at 3 07 11 AM" src="https://user-images.githubusercontent.com/114739901/208412509-e5751cfd-9d80-4d87-8f97-051059d24689.png">
+
+<img width="1182" alt="Screen Shot 2022-12-19 at 3 07 30 AM" src="https://user-images.githubusercontent.com/114739901/208412559-cba2590f-47ed-4528-b35c-91cea591923b.png">
+
+- **Group each char together with the digraphs that contain the char. Order the digraphs by occurrence frequency. Only show the first n amount (`n` = 5 in this case)**
+
+<img width="1266" alt="Screen Shot 2022-12-19 at 1 57 43 AM" src="https://user-images.githubusercontent.com/114739901/208398828-390cb09f-de02-4a0a-a06f-060449c127be.png">
+
+- **Filter the iterating char from the digraph groupings**
+
+<img width="1392" alt="Screen Shot 2022-12-19 at 3 42 11 AM" src="https://user-images.githubusercontent.com/114739901/208418391-645333fa-ea83-4569-8dd8-04a79fe6f069.png">
+
+- **Algorithm recap**
+
+1. Find most common character among all digraphs among all words of the top 2000 English words (`e` for example)
+2. Assign that character to the most comfortable key spot (QWERTY's `f` key in my opinion)
+3. Gather the next `n` amount of most common pairing characters for this character and assign them to the next best letter spots **without allowing the same finger to be assigned to more than one**
+4. Repeat this process with the next most common character
+
+For `e`, the most common digraphs are `re`, `er`, `en`, `te`, and `le` (`n` = 5 in this example). Therefore, I want to assign the letter `r` to the second most comfortable spot. If this spot is using the same finger as a common neighbor, move to the next most comfortable spot. This process repeats with `n` and `t` ... And then this entire process repeats with `i` because it is the second most common letter.
+
+The following image represents each neighboring letter (`n` = 1..5), the QWERTY key it will be assigned to (assuming it is not taken), and the position of the QWERTY key on the keyboard.
+
+<img width="1382" alt="Screen Shot 2022-12-19 at 3 50 23 AM" src="https://user-images.githubusercontent.com/114739901/208419801-c53516ec-6e2a-4055-99aa-b22c0c3bfa8d.png">
+
+- **Algorithm implementation (no finger neighbor constraint yet)! Yay!**
+
+<img width="1386" alt="Screen Shot 2022-12-19 at 4 40 56 AM" src="https://user-images.githubusercontent.com/114739901/208428529-ae936713-6fc9-4a85-8091-badf9e42ed67.png">
+
+> The most comfortable key, `F`, is set to the most common letter, `E`. Next, assign the next few most comfortable keys to the most common digraph pairings of `E` (`R`, `N`, `T`, `L`, see above). Next, move to the next most common letter, `I`. Assign the next most comfortable key to `I`, and assign the following most comfortable keys to `I`'s most common digraph pairings (`O`, `S`, ...) etc. 
+
+<img width="1381" alt="Screen Shot 2022-12-19 at 4 41 15 AM" src="https://user-images.githubusercontent.com/114739901/208428577-d87afead-b846-4fdc-b0b1-8969a51b88f8.png">
+
+<img width="1385" alt="Screen Shot 2022-12-19 at 4 43 55 AM" src="https://user-images.githubusercontent.com/114739901/208429061-f7abd546-bd21-4cb9-ad22-90a0d9630b1b.png">
+
+
 
