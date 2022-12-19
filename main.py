@@ -28,6 +28,7 @@ import parse_pdf
 alpha = "abcdefghijklmnopqrstuvwxyz"
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
+QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q', 'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 fingers = {}
 contiguous_count = {}
 frequency_letter = {}
@@ -159,14 +160,15 @@ if __name__ == '__main__':
     contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
     keyboard = Keyboard()
+
     assign_keys(keyboard.keyboard, fingers)
-    #keyboard.keyboard[1][1].letter = 'a'
+    for finger in fingers.values():
+        print(f'\n{finger.id} | ', end="")
+        for key in finger.keys:
+            print(key.letter, end="")
+    print("\n")
 
-    
-    #for finger in fingers:
-    #    print(f'{finger.id} | {finger.keys}')
-
-    keyboard.print(0)
+    # keyboard.print(0)
 
     """
     for row in range(len(keyboard.keyboard)):
@@ -174,6 +176,11 @@ if __name__ == '__main__':
             print(f'{key.letter} | [{row}][{keyboard.keyboard[row].index(key)}]')
     """
 
-    #fingers[1].assign(keyboard.keyboard[])
-
-
+    # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
+    for digraph in contiguous_count.keys():
+        for letter in digraph:
+            frequency_letter[letter] += contiguous_count[digraph]
+    
+    for char in dict(reversed(list({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.items()))).keys():
+        
+        pass
