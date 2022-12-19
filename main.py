@@ -67,11 +67,15 @@ class Keyboard:
         self.print_newline()
 
 class Finger:
-    __slots__ = 'id'
+    __slots__ = ('id', 'keys')
     id: str
+    keys: typing.List[chr]
 
     def __init__(self, id) -> None:
         self.id = id
+
+    def assign(self, key: Key) -> None:
+        self.keys.append(key)
 
     def list(self) -> None:
         pass
@@ -103,5 +107,6 @@ if __name__ == '__main__':
     contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
     keyboard = Keyboard()
+    keyboard.keyboard[1][1].letter = 'a'
     keyboard.print(0)
 
