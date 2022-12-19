@@ -27,6 +27,8 @@ import parse_pdf
 
 alpha = "abcdefghijklmnopqrstuvwxyz"
 KEYBOARD_ROW_SIZE = [10, 9, 7]
+FINGER_TAGS = ["L5", "L4", "L3", "L2", "L1", "R1", "R2", "R3", "R4", "R5"]
+fingers = {}
 contiguous_count = {}
 frequency_letter = {}
 
@@ -67,14 +69,16 @@ class Keyboard:
         self.print_newline()
 
 class Finger:
-    __slots__ = ('id', 'keys')
+    __slots__ = ['id', 'keys']
     id: str
     keys: typing.List[chr]
 
     def __init__(self, id) -> None:
         self.id = id
+        self.keys = []
 
     def assign(self, key: Key) -> None:
+        if (key == None): return
         self.keys.append(key)
 
     def list(self) -> None:
@@ -90,9 +94,57 @@ def populate_frequency_letter():
     for letter in alpha:
         frequency_letter[letter] = 0
 
+def populate_hands():
+    for finger in FINGER_TAGS:
+        fingers[finger] = Finger(finger)
+
+def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
+
+    fingers["L5"].assign(None)
+    
+    fingers["L4"].assign(keyboard[0][0])
+    fingers["L4"].assign(keyboard[1][0])
+    fingers["L4"].assign(keyboard[2][0])
+
+    fingers["L3"].assign(keyboard[0][1])
+    fingers["L3"].assign(keyboard[0][2])
+    fingers["L3"].assign(keyboard[1][1])
+    
+    fingers["L2"].assign(keyboard[0][3])
+    fingers["L2"].assign(keyboard[0][4])
+    fingers["L2"].assign(keyboard[1][2])
+    fingers["L2"].assign(keyboard[1][3])
+    fingers["L2"].assign(keyboard[1][4])
+    fingers["L2"].assign(keyboard[2][1])
+    fingers["L2"].assign(keyboard[2][2])
+    fingers["L2"].assign(keyboard[2][3])
+
+    fingers["L1"].assign(None)
+
+    fingers["R1"].assign(None)
+
+    fingers["R2"].assign(keyboard[0][5])
+    fingers["R2"].assign(keyboard[0][6])
+    fingers["R2"].assign(keyboard[1][5])
+    fingers["R2"].assign(keyboard[1][6])
+    fingers["R2"].assign(keyboard[1][7])
+    fingers["R2"].assign(keyboard[2][4])
+    fingers["R2"].assign(keyboard[2][5])
+    fingers["R2"].assign(keyboard[2][6])
+
+    fingers["R3"].assign(keyboard[0][7])
+    fingers["R3"].assign(keyboard[0][8])
+    fingers["R3"].assign(keyboard[1][8])
+
+    fingers["R4"].assign(keyboard[0][9])
+
+    fingers["R5"].assign(None)
+
+
 if __name__ == '__main__':
     populate_contiguous_count()
     populate_frequency_letter()
+    populate_hands()
 
     # Every time a specific set of two contiguous characters pop up while iterating through a word in
     # raw_pdf_top_2000.txt, ++ the frequency count in contiguous_count map according to respective key
@@ -107,6 +159,21 @@ if __name__ == '__main__':
     contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
     keyboard = Keyboard()
-    keyboard.keyboard[1][1].letter = 'a'
+    assign_keys(keyboard.keyboard, fingers)
+    #keyboard.keyboard[1][1].letter = 'a'
+
+    
+    #for finger in fingers:
+    #    print(f'{finger.id} | {finger.keys}')
+
     keyboard.print(0)
+
+    """
+    for row in range(len(keyboard.keyboard)):
+        for key in keyboard.keyboard[row]:
+            print(f'{key.letter} | [{row}][{keyboard.keyboard[row].index(key)}]')
+    """
+
+    #fingers[1].assign(keyboard.keyboard[])
+
 
