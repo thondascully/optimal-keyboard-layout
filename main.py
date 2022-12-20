@@ -197,83 +197,85 @@ def assign_keys(keyboard: Keyboard.keyboard, fingers: typing.List[Finger]):
 
     fingers["R5"].assign(None)
 
-if __name__ == '__main__':
-    KEYBOARD_PSUM_ROWS = get_modified_rows()
-    populate_contiguous_count()
-    populate_frequency_letter()
-    populate_hands()
-    populate_qwerty_pairing()
+# ------------------------------------------------------------------------------------------------- #
 
-    # Every time a specific set of two contiguous characters pop up while iterating through a word in
-    # raw_pdf_top_2000.txt, ++ the frequency count in contiguous_count map according to respective key
-    # EX: "hello" contains "he". Increase the count (value) of "he" key in the contiguous_count map by 1
-    for word in parse_pdf.get_words():
-        length = len(word)        
-        for index in range(length - 1):
-            contiguous_count[word[index] + word[index + 1]] += 1
+KEYBOARD_PSUM_ROWS = get_modified_rows()
+populate_contiguous_count()
+populate_frequency_letter()
+populate_hands()
+populate_qwerty_pairing()
 
-    # Sorts the map by digraph frequency and removes all keys whose value is 0
-    contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
+# Every time a specific set of two contiguous characters pop up while iterating through a word in
+# raw_pdf_top_2000.txt, ++ the frequency count in contiguous_count map according to respective key
+# EX: "hello" contains "he". Increase the count (value) of "he" key in the contiguous_count map by 1
+for word in parse_pdf.get_words():
+    length = len(word)        
+    for index in range(length - 1):
+        contiguous_count[word[index] + word[index + 1]] += 1
 
-    keyboard = Keyboard()
-    assign_keys(keyboard.keyboard, fingers)
+# Sorts the map by digraph frequency and removes all keys whose value is 0
+contiguous_count = {k: v for k, v in {k: v for k, v in sorted(contiguous_count.items(), key=lambda item: item[1])}.items() if v!=0}
 
-    inv_q_pair = {v: k for k, v in qwerty_key_pair.items()}
-    for row in keyboard.keyboard:
-        for key in row:
-            key.qwerty_key = inv_q_pair[tuple(map(int, [key.row, key.column]))] # LOL
+keyboard = Keyboard()
+assign_keys(keyboard.keyboard, fingers)
 
-    # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
-    for digraph in contiguous_count.keys():
-        for letter in digraph:
-            frequency_letter[letter] += contiguous_count[digraph]
-    
-    ordered_keys = list(reversed({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.keys()))
+inv_q_pair = {v: k for k, v in qwerty_key_pair.items()}
+for row in keyboard.keyboard:
+    for key in row:
+        key.qwerty_key = inv_q_pair[tuple(map(int, [key.row, key.column]))] # LOL
 
-    for key in ordered_keys:
-        # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot, 
-        # as the 'F' QWERTY key is the most comfortable (subjective). 
-        # The 'F' QWERTY key exists at qwerty_key_pair['F'] point, which is (1, 3). Therefore,
-        # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
-        # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
-        # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
+# Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
+for digraph in contiguous_count.keys():
+    for letter in digraph:
+        frequency_letter[letter] += contiguous_count[digraph]
+
+ordered_keys = list(reversed({k: v for k, v in sorted(frequency_letter.items(), key=lambda item: item[1])}.keys()))
+
+for key in ordered_keys:
+    # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot, 
+    # as the 'F' QWERTY key is the most comfortable (subjective). 
+    # The 'F' QWERTY key exists at qwerty_key_pair['F'] point, which is (1, 3). Therefore,
+    # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
+    # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
+    # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
+    letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
+    row = qwerty_key_pair[letter][0]
+    column = qwerty_key_pair[letter][1]
+    while keyboard.keyboard[row][column].letter != "-":
+        qwerty_key_status += 1 # Linear probing
         letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         row = qwerty_key_pair[letter][0]
         column = qwerty_key_pair[letter][1]
-        while keyboard.keyboard[row][column].letter != "-":
-            qwerty_key_status += 1 # Linear probing
-            letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
-            row = qwerty_key_pair[letter][0]
-            column = qwerty_key_pair[letter][1]
 
-        if not keyboard.contains(key.upper()):
-            keyboard.keyboard[row][column].letter = key.upper()
-            print(f'{letter} is being set to {key.upper()}')
+    if not keyboard.contains(key.upper()):
+        keyboard.keyboard[row][column].letter = key.upper()
+        print(f'{letter} is being set to {key.upper()}')
 
-        other_chars_in_common_digraphs = []
-        for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
-            other_chars_in_common_digraphs.append(digraph.replace(key, ""))
+    other_chars_in_common_digraphs = []
+    for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
+        other_chars_in_common_digraphs.append(digraph.replace(key, ""))
 
-        for char in other_chars_in_common_digraphs:
-            if char == '': 
-                continue
-            if keyboard.contains(char.upper()):
-                continue 
-            qwerty_key_status += 1 # Linear probing
+    for char in other_chars_in_common_digraphs:
+        if char == '':
+            continue
+        if keyboard.contains(char.upper()):
+            continue 
+        qwerty_key_status += 1 # Linear probing
 
-            next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
-            l = qwerty_key_pair[next_key]
-            if keyboard.keyboard[l[0]][l[1]].letter == "-":
-                keyboard.keyboard[l[0]][l[1]].letter = char.upper()
-                print(f'{next_key} is being set to {char.upper()}')
+        next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
+        l = qwerty_key_pair[next_key]
+        if keyboard.keyboard[l[0]][l[1]].letter == "-":
+            keyboard.keyboard[l[0]][l[1]].letter = char.upper()
+            print(f'{next_key} is being set to {char.upper()}')
 
-        qwerty_key_status += 1
-    keyboard.print(0)
+    qwerty_key_status += 1
+keyboard.print(0)
 
-    # Prints assigned finger diagram
-    for finger in fingers.values():
-        print(f'\n{finger.id} | ', end="")
-        for key in finger.keys:
-            print(key.letter, end="")
-    print("\n")
-        
+# Prints assigned finger diagram
+"""
+for finger in fingers.values():
+    print(f'\n{finger.id} | ', end="")
+    for key in finger.keys:
+        print(key.letter, end="")
+print("\n")
+"""

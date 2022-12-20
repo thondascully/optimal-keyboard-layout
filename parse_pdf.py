@@ -6,3 +6,6 @@ def get_words():
                     if not token.__contains__("(") and not token.__contains__(")") and not token.__contains__(","):
                         alpha_words.append(token.rstrip())
     return alpha_words[15:]
+
+if __name__ == '__main__':
+    print(get_words())
