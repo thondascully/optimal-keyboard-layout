@@ -24,6 +24,7 @@ Teo Honda-Scully | 2022
 
 import typing
 import parse_pdf
+import operator
 
 alpha = "abcdefghijklmnopqrstuvwxyz"
 DIGRAPH_GROUP_ACCT_AMT = 5
@@ -121,8 +122,6 @@ class Finger:
         return False
 
 # Modified prefix sum. Takes [10, 9, 7] and returns [0, 10, 19]. Normal psum would return [10, 19, 26]
-
-
 def get_modified_rows():
     new = [0] * (len(KEYBOARD_ROW_SIZE))
     new[1] = KEYBOARD_ROW_SIZE[0]
@@ -130,9 +129,15 @@ def get_modified_rows():
         new[index + 1] = new[index] + KEYBOARD_ROW_SIZE[index]
     return new
 
+def fold_iter(seq, init, gen):
+    for item in seq:
+        init = gen(init, item)
+        yield init
+
+def get_modified_rows2():
+    return list(fold_iter([0] + KEYBOARD_ROW_SIZE[:2], 0, operator.add))
+
 # Creates a map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'. Value is zero atm
-
-
 def populate_contiguous_count():
     for first in alpha:
         for second in alpha:
