@@ -1,6 +1,6 @@
-# optimal keyboard layout: how to maximize typing speed by minimizing keystroke count
+# optimal keyboard layout: how to maximize typing speed by maximizing finger diversity
 
-> this program accounts for the user's natural finger positioning, the keys that each finger is in charge of, and the keys that the user feels most comfortable pressing. to skip vocabulary and jump to how this program works, [click here](#how-to-maximize-typing-speed-by-minimizing-keystroke-count-using-the-aforementioned-typing-patterns)
+> this program accounts for the user's natural finger positioning, the keys that each finger is in charge of, and the keys that the user feels most comfortable pressing. [click here](#how-to-maximize-typing-speed-by-maximizing-finger-diversity-using-the-aforementioned-typing-patterns) to jump to the '_how this works_' section.
 
 ### what is '_natural finger positioning_'?
 your fingers' natural positioning on the keyboard are the 10 keys that each of your fingers (assuming 10) lays on while inactive (not typing).
@@ -42,17 +42,17 @@ QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
 
 </br>
 
-### how to maximize typing speed by minimizing keystroke count using the aforementioned typing patterns
+### how to maximize typing speed by maximizing finger diversity using the aforementioned typing patterns
 
 well, nobody is perfect. this goes for your fingers as well. some fingers work harder than others, and that is normal. 
 
 **_in my opinion, the biggest constraint to inhumane 26-key typing speeds are words whose digraph (sets of two) letters are typed using the same finger._**
 
-> try it yourself! type the word `look`. if we type it the same way, we use the same finger for all four letters, meaning that we need to spend the time it takes for four complete keystroke in order to type this word.
+> try it yourself! type the word `look`. if we type it the same way, we use the same finger for all four letters. this means that we allocate extra wasted time in between each letter of the word to move our finger to the next key (or to unpress and repress the same key)
 
 > as a comparison, type the word `beacons`. this might not be universal, but i can type `beacons` faster than i can type the word `look`. this is because the diversity in finger usage, which is an idea that this program acknowledges and takes advantage of.
 
-> now try the word `sewers`. even though this word changes between fingers, it still uses 2 fingers for the entire 6 letter string! because of this, it almost suffers the same fate as `look` despite having some finger diversity...
+> now try the word `sewers`. even though this word changes fingers for contiguous letters, it still uses 2 fingers for the entire 6 letter string! because of this, it almost suffers the same fate as `look` despite having some finger diversity...
 
 from this point onwards, familiarize yourself with the following notation:
 
@@ -63,17 +63,16 @@ from this point onwards, familiarize yourself with the following notation:
 therefore, from left to right, the order of fingers is `L5`, `L4`, `L3`, `L2`, `L1`, `R1`, `R2`, `R3`, `R4`, `R5`.
 
 > the above statement assumes you have 10 fingers
-</br>
 
-**Try it yourself! Type `beacon` and then type `reviewers`. As you can probably tell, `beacon` is much easier to type than `reviewers` because of the diversity in finger usage (and consistent hand swapping).** beacons
+_why is `beacons` faster to type than `look`_?
 
-> For me, `beacon` is typed as follows: `R2`, `L3`, `L4`, `L2`, `R3`, `R2`. It should be noted that `R2` repeats once, but only after 5 other key registers. This is enough time for it to feel comfortable.
+> for me, `beacons` is typed as follows: `R2`, `L3`, `L4`, `L2`, `R3`, `R2`, `L3`. five unique keys are pressed, with no contiguous (neighboring) keys pressed by the same finger.
 
-> For me, `reviewers` is typed as follows: `L2`, `L3`, `L2`, `R3`, `L3`, `L3`, `L3`, `L2`, `L3`. It should be noted that `L3` repeats 5 times, with 4 of them being within a 5 key register time span. This is uncomfortable!
+> for me, `look` is typed as follows: `R3`, `R3`, `R3`, `R3`. do you see the issue? obviously, some people may type `look` with 2 fingers instead of 1, but regardless, the point is that this word is slow to type because there are neighboring keys assigned to the same finger.
 
-Disclaimer: words such as `reviewers` are hard on _my_ hand positioning layout. This is not universal. Unfortunately, this program is created with _my_ hand layout in mind, **so it might not be tailored for you as a reader**.
+therefore, to minimizing keystroke count (which is defined
 
-More food for thought: For me, I can type `beacon` much faster than I can type `waters`. The word `waters` is typically typed using 3 fingers from the same hand. The digraph letter groups in `waters` are typed by different fingers (a single finger will not be used two keystrokes in a row), yet it is still slower to execute than the 6-letter word `beacon`. 
+creating a keyboard layout that assigns keys to fingers that are not taken up by their most common digraph (and prioritizes the user's most comfortable keys (typically determined by natural positioning) when assigning the next key)
 
 -------------
 
