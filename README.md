@@ -15,14 +15,34 @@ for me, my left hand fingers are conditioned to lay in the `wasd` section of the
 
 in comparison, my right hand is tilted inwards for comfort, which influences how my fingers are positioned.
 
+</br>
+
+### what are _the keys that each finger is in charge of_?
+each finger is 'assigned' to a section of keys on the keyboard. this is how muscle memory works for typing. for example, your left and right index fingers are 'in charge' of the `f` and the `j` keys, respectively.
+
+therefore, the set of keys that a specific finger is used to pressing are labeled as the _keys that the finger is in charge of_.
+
+![Keyboard-33](https://user-images.githubusercontent.com/114739901/208344113-3d7f0245-8a2d-4d3a-b339-5a2e1429c1a3.jpg)
+
+> the keys each of my fingers are 'assigned' to. these are the assignments that i will be referencing throughout this document
+
+</br>
+
+well, nobody is perfect. this goes for your fingers as well. some fingers work harder than others, and that is normal. 
+
+**_in my opinion, the biggest constraint to inhumane 26-key typing speeds are words whose digraph (sets of two) letters are typed using the same finger._**
+
+> try it yourself! type the word `look`. if we type it the same way, we use the same finger for all four letters, meaning that we need to spend the time it takes for four complete keystroke in order to type this word.
+
+> as a comparison, type the word `beacons`. this might not be universal, but i can type `beaconse` faster than i can type the word `look`. this is because the diversity in finger usage, which is an idea that this program acknowledges and takes advantage of. this is covered further in 
+
+beacon look llook
+</br>
 
 > Notation: `L` signifies `Left hand`. `R` signifies `Right hand`. `1..5` signifies fingers, where `1` is thumb and `5` is pinky. Therefore, from left to right, the order of fingers is `L5`, `L4`, `L3`, `L2`, `L1`, `R1`, `R2`, `R3`, `R4`, `R5`.
 
-Known: At WPM exceeding 120ish (rough guess), typing speed is negatively impacted by words whose physical keys on the keyboard are typed by the same finger.
 
-In comparison, words whose sets of digraphs (sets of two letters) are typed by different fingers are much faster to execute.
-
-**Try it yourself! Type `beacon` and then type `reviewers`. As you can probably tell, `beacon` is much easier to type than `reviewers` because of the diversity in finger usage (and consistent hand swapping).**
+**Try it yourself! Type `beacon` and then type `reviewers`. As you can probably tell, `beacon` is much easier to type than `reviewers` because of the diversity in finger usage (and consistent hand swapping).** beacons
 
 > For me, `beacon` is typed as follows: `R2`, `L3`, `L4`, `L2`, `R3`, `R2`. It should be noted that `R2` repeats once, but only after 5 other key registers. This is enough time for it to feel comfortable.
 
@@ -44,6 +64,8 @@ With dvorak, there is no guarantee (and it is almost uncommon) for different fin
 ### What about Qwerty?
 I am kind of aiming for qwerty's initial goal with this layout. I think I can do better though. Additionally (not sure if possible unless using a Robot library), another solution I would suggest is including an easily accessible key on the keyboard that repeats the last letter typed. Therefore, words like `hello` can be typed without using the same finger for both `l`s. 
 
+
+### 
 -------------
 
 The 22 most common pairs of letters (based on the 2000 most common English words):  
