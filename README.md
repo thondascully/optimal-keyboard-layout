@@ -1,9 +1,20 @@
-**Prints out the keyboard layout in which every key is as far away from its most common neighbor throughout the top 2000 words in the English language**
-> **`"hello"` -> `h` and `e` are neighbors**
+# optimal keyboard layout: how to maximize typing speed by minimizing keystroke count
 
-**This specific layout is customized for my specific hand positioning while typing.**
+> this program accounts for the user's natural finger positioning, the keys that each finger is in charge of, and the keys that the user feels most comfortable pressing. 
+
+### what is _natural finger positioning_?
+your fingers' natural positioning on the keyboard are the 10 keys that each of your fingers (assuming 10) lays on while inactive (not typing).
+
+for people who learned to type in a strict environment (or using a website like [typing.com](https://www.typing.com)), your natural positioning may be the home row (the middle row that starts with `a` and ends with `l`), excluding your thumbs on the space bar of course.
 
 ![Keyboard-3](https://user-images.githubusercontent.com/114739901/208339685-36ff29d2-917c-4dc8-a22d-a696d5210739.jpg)
+
+> my natural finger positioning. this is the positioning that i will be referencing throughout this document.
+
+for me, my left hand fingers are conditioned to lay in the `wasd` section of the keyboard, except that my hand expands a little (since `wasd` is compact and uncomfortable), so my index and middle finger shift one key to the right.
+
+in comparison, my right hand is tilted inwards for comfort, which influences how my fingers are positioned.
+
 
 > Notation: `L` signifies `Left hand`. `R` signifies `Right hand`. `1..5` signifies fingers, where `1` is thumb and `5` is pinky. Therefore, from left to right, the order of fingers is `L5`, `L4`, `L3`, `L2`, `L1`, `R1`, `R2`, `R3`, `R4`, `R5`.
 
@@ -49,6 +60,9 @@ The 22 most common pairs of letters (based on the 2000 most common English words
 - **Access a list of the 2000 most common English words**
 
 <img width="1254" alt="Screen Shot 2022-12-18 at 7 27 38 PM" src="https://user-images.githubusercontent.com/114739901/208341768-59648ecc-f83a-4bab-8d8e-bfc171c1d8aa.png">
+
+</br>
+</br>
 
 - **Parse through and filter for valid words only (and not random raw copy paste junk)**
 
