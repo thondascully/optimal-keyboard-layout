@@ -1,8 +1,8 @@
 # optimal keyboard layout: how to maximize typing speed by minimizing keystroke count
 
-> this program accounts for the user's natural finger positioning, the keys that each finger is in charge of, and the keys that the user feels most comfortable pressing. 
+> this program accounts for the user's natural finger positioning, the keys that each finger is in charge of, and the keys that the user feels most comfortable pressing. to skip vocabulary and jump to how this program works, [click here](#how-to-maximize-typing-speed-by-minimizing-keystroke-count-using-the-aforementioned-typing-patterns)
 
-### what is _natural finger positioning_?
+### what is '_natural finger positioning_'?
 your fingers' natural positioning on the keyboard are the 10 keys that each of your fingers (assuming 10) lays on while inactive (not typing).
 
 for people who learned to type in a strict environment (or using a website like [typing.com](https://www.typing.com)), your natural positioning may be the home row (the middle row that starts with `a` and ends with `l`), excluding your thumbs on the space bar of course.
@@ -17,7 +17,7 @@ in comparison, my right hand is tilted inwards for comfort, which influences how
 
 </br>
 
-### what are _the keys that each finger is in charge of_?
+### what are '_the keys that each finger is in charge of_'?
 each finger is 'assigned' to a section of keys on the keyboard. this is how muscle memory works for typing. for example, your left and right index fingers are 'in charge' of the `f` and the `j` keys, respectively.
 
 therefore, the set of keys that a specific finger is used to pressing are labeled as the _keys that the finger is in charge of_.
@@ -27,6 +27,22 @@ therefore, the set of keys that a specific finger is used to pressing are labele
 > the keys each of my fingers are 'assigned' to. these are the assignments that i will be referencing throughout this document
 
 </br>
+
+### what are '_the keys that the user feels most comfortable pressing_'?
+this program reassigns alphabet characters to different keys on the keyboard. because some characters in the english language are more common than others (`e`, for example, is much more common than `x`), their assigned key should feel more comfortable to press
+
+therefore, we need to create a prioritized list of the keyboard keys (QWERTY keys) that are most comfortable to press. this often starts off with the keys that your [fingers naturally lay on](#what-is-natural-finger-positioning).
+
+```python 'ignore
+QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
+                            'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
+```
+
+> my list for the most comfortable QWERTY keys to press. evidently, the first six slots are taken by natural finger positions.
+
+</br>
+
+### how to maximize typing speed by minimizing keystroke count using the aforementioned typing patterns
 
 well, nobody is perfect. this goes for your fingers as well. some fingers work harder than others, and that is normal. 
 
