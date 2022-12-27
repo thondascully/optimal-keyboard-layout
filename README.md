@@ -64,27 +64,35 @@ therefore, from left to right, the order of fingers is `L5`, `L4`, `L3`, `L2`, `
 
 > the above statement assumes you have 10 fingers
 
+</br>
+
 _why is `beacons` faster to type than `look`_?
 
 > for me, `beacons` is typed as follows: `R2`, `L3`, `L4`, `L2`, `R3`, `R2`, `L3`. five unique keys are pressed, with no contiguous (neighboring) keys pressed by the same finger.
 
 > for me, `look` is typed as follows: `R3`, `R3`, `R3`, `R3`. do you see the issue? obviously, some people may type `look` with 2 fingers instead of 1, but regardless, the point is that this word is slow to type because there are neighboring keys assigned to the same finger.
 
-therefore, to minimizing keystroke count (which is defined
+</br>
+
+**_therefore, to maximize typing speeds, we really should be looking to maximize finger diversity among the most frequent digraphs in the top 2000~ most common words of the english language_**
+
+first, we need to gather the top 2000 most common words, which is displayed below
+
+<img width="1696" alt="Screenshot 2022-12-27 at 12 46 39 AM" src="https://user-images.githubusercontent.com/114739901/209639266-6afb076a-1154-4a33-afd2-54f42fcc20cc.png">
+
+then we need to tokenize the words into digraphs (groups of two letters)
+
+<img width="1690" alt="Screenshot 2022-12-27 at 12 45 20 AM" src="https://user-images.githubusercontent.com/114739901/209639186-04cd7e1c-145d-4226-b453-1e11661930bc.png">
+
+next, we check to see which digraphs are most frequent
+
+<img width="1702" alt="Screenshot 2022-12-27 at 12 47 41 AM" src="https://user-images.githubusercontent.com/114739901/209639547-86384fd3-92d0-45a9-9728-25b52c4beef9.png">
+
+
+starting with the most frequent letters in the english alphabet, this program assigns those select characters to the most [most comfortable QWERTY key positions](#what-are-the-keys-that-the-user-feels-most-comfortable-pressing). next, 
+
 
 creating a keyboard layout that assigns keys to fingers that are not taken up by their most common digraph (and prioritizes the user's most comfortable keys (typically determined by natural positioning) when assigning the next key)
-
--------------
-
-My passwords are typically `beacon` or `shadow` because every letter is typed using a different finger (or avoids the same finger usage for 2-3 letters in a row), meaning it can be typed in pretty much minimal keystroke time.
-
-Words like these two interest me. I want to find a keyboard layout that maximizes these types of words (that is, minimizes the amount of almost contiguous key strokes typed by the same finger).
-
-### What about Dvorak?
-With dvorak, there is no guarantee (and it is almost uncommon) for different fingers to be used for each neighboring letter of an english word.
-
-### What about Qwerty?
-I am kind of aiming for qwerty's initial goal with this layout. I think I can do better though. Additionally (not sure if possible unless using a Robot library), another solution I would suggest is including an easily accessible key on the keyboard that repeats the last letter typed. Therefore, words like `hello` can be typed without using the same finger for both `l`s. 
 
 
 ### 
