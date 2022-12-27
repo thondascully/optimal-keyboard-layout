@@ -102,106 +102,120 @@ after assigning the most frequent letter to the most comfortable spot, we assign
 
 **this will ensure that the most common character is assigned to a finger that none of the character's common neighbors are assigned to**
 
+</br>
+
 we repeat this process with the next most frequent letter (`i`), except that while we are assigning characters to QWERTY keys (prioritized by comfort) from this point onward, we skip the QWERTY keys that are already assigned to a finger in charge of the letter's (`i`) other common neighbors. if there are no available spots, then just assign to the primary comfortable QWERTY key that was skipped over.
 
 **_this algorithm will create a keyboard layout that maximizes typing speed by minimizing the wasted time allocated towards moving fingers to different keys for contiguous letters that use the same finger_**
 
-### 
--------------
-
-The 22 most common pairs of letters (based on the 2000 most common English words):  
-```{..., 'ra': 109, 've': 111, 'or': 116, 'se': 121, 'co': 122, 'ea': 123, 'le': 126, 'an': 128, 'io': 131, 'ar': 145, 'nt': 148, 'st': 154, 'al': 156, 'ti': 168, 'at': 170, 'te': 171, 'en': 187, 'on': 214, 'in': 224, 'er': 247, 're': 260}```
-
-> **Recap on project goal**: well abstractly i want to figure out a keyboard layout (think of it as a matrix in this context... row1size10, row2size9, row3size7 with respective offsets etc) where every finger is in charge of the letters least likely to be grouped together (given the list of most common pairs)  
->  
-> for example, `re` is paired the most. I dont want my LH index finger to be in charge of both `r` and `e` as that is not optimal and will result in slower typing speeds because of contiguous finger strokes by the same finger. therefore, `r` and `e` should be assigned to different fingers. except this has to happen for every pair as optimally as possible until everyone is as happy as possible
+</br>
 
 ------------
 
-### Process
-
-- **Access a list of the 2000 most common English words**
-
-<img width="1254" alt="Screen Shot 2022-12-18 at 7 27 38 PM" src="https://user-images.githubusercontent.com/114739901/208341768-59648ecc-f83a-4bab-8d8e-bfc171c1d8aa.png">
-
-</br>
 </br>
 
-- **Parse through and filter for valid words only (and not random raw copy paste junk)**
+### process (chronological order)
+
+</br>
+
+**access a list of the 2000 most common English words**
+
+<img width="1668" alt="Screenshot 2022-12-27 at 1 20 44 AM" src="https://user-images.githubusercontent.com/114739901/209644024-247261d9-a935-4c82-956f-9a46f97f33ae.png">
+
+**parse through the raw copy-and-paste and filter for valid words only**
 
 <img width="1259" alt="Screen Shot 2022-12-18 at 7 30 21 PM" src="https://user-images.githubusercontent.com/114739901/208342027-7d136f48-53ff-4619-9fb4-142f4fa4f970.png">
 
-- **Tokenize the words into groups of two letters**
+**tokenize the words into groups of two letters**
 
-<img width="1255" alt="Screen Shot 2022-12-18 at 7 26 55 PM" src="https://user-images.githubusercontent.com/114739901/208341705-e5d7590d-0a28-4398-9f45-2aa13d799031.png">
+<img width="1702" alt="Screenshot 2022-12-27 at 12 47 41 AM" src="https://user-images.githubusercontent.com/114739901/209639547-86384fd3-92d0-45a9-9728-25b52c4beef9.png">
 
-- **Create a frequency count map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'**
+**create a frequency count map of 26^2 keys. Keys range from 'aa' -> 'ab' -> ... -> 'zy' -> 'zz'**
 
 <img width="1264" alt="Screen Shot 2022-12-18 at 7 32 49 PM" src="https://user-images.githubusercontent.com/114739901/208342235-ae45744a-cfe3-4b5d-b3e3-4edb5426fb45.png">
 
-- **Populate the count map based on the token occurrences**
+**populate the count map based on the token occurrences**
 
 <img width="1263" alt="Screen Shot 2022-12-18 at 7 34 03 PM" src="https://user-images.githubusercontent.com/114739901/208342371-095a5798-577c-4b25-82df-7febe08ee653.png">
 
-- **Create a way to display keyboard**
+**create a way to display keyboard**
 
-<img width="1275" alt="Screen Shot 2022-12-18 at 9 32 11 PM" src="https://user-images.githubusercontent.com/114739901/208354506-f7b58cee-dec4-482c-b625-ce8e9f219e70.png">
+```python 'ignore
+# inside class
+def print(self, is_raw) -> None:
+    for row in range(len(self.keyboard)):
+        if not is_raw:
+            self.print_space(row)
+        for key in self.keyboard[row]:
+            self.print_key(key.letter)
+        self.print_newline()
+```
 
 <img width="1266" alt="Screen Shot 2022-12-18 at 9 29 56 PM" src="https://user-images.githubusercontent.com/114739901/208354254-835fea17-9d62-4fe1-9d9a-42e69f4d9a7e.png">
 
 > `-` is a placeholder for the correct letter assigned to the key
 
-- **Access matrix notation (2D array) version of keyboard**
+**access matrix notation (2D array) version of keyboard**
 
 <img width="1254" alt="Screen Shot 2022-12-18 at 9 33 38 PM" src="https://user-images.githubusercontent.com/114739901/208354725-e6f183bd-b5d9-4daf-a3a0-5cd65844ebca.png">
 
-- **Assign specific keys to their respective finger**
+**assign specific keys to their respective finger**
 
-This is a diagram that displays the keys assigned to each finger. By default, each key is set to `-` (see note above)
+this is a diagram that displays the keys assigned to each finger. by default, each key is set to `-` (see note above)
 
 <img width="1269" alt="Screen Shot 2022-12-18 at 10 05 44 PM" src="https://user-images.githubusercontent.com/114739901/208358828-d866fc55-897f-4f3b-84ed-fcd861c12224.png">
 
-- **Think of algorithm:**
-
-1. Start by finding out which letter is used the most, so sum up all of the frequencies for the digraphs and see which letter has the highest tally
-2. Assign this to some random finger (preferably the one most easily accessible)
-3. Now, for each of the digraphs it appears in (ordered from most to least common), repeat the process (so do depth first)
-4. Ex: let's say `e` appears in the most combos, so you assign it to the left pointer finger
-5. Then you get all the things it's together with (say `r`, `s`, and `t`) in that order
-6. First you assign `r` to be, say, the right index finger, and then you look at all the combinations `r` is in and do it recursively
-> Maybe breadth-first would be better, but I think this is pretty good and time-efficient
-
-- **Figure out which keys are typed with which fingers**
+**figure out which keys are typed with which fingers**
 
 ![Keyboard-33](https://user-images.githubusercontent.com/114739901/208344113-3d7f0245-8a2d-4d3a-b339-5a2e1429c1a3.jpg)
 
-- **At this point, I started to prioritize which keys are most comfortable to press. That is, I tried finding the order in which I would assign the keys to specific fingers at the beginning of my algorithm. I discovered a cool roadblock:**
+**at this point, i started to prioritize which keys are most comfortable to press. that is, i tried finding the order in which i would assign the keys to specific fingers at the beginning of my algorithm. i discovered a cool roadblock:**
 
 lets say for example i want the first priority key to be `F` and the second `J`. This makes sense. `E` and `O` next. `R` and `U` next (closest to index home position). here comes the tricky part. Lets say the next most comfortable key to press is `N`. This only works if the letter before or after `N` in an arbitrary word is not `O`, `P`, or `L` because then i would need to stretch my two fingers apart in order to click both keys (instead of moving my hand to press the N by it self). hopefully this makes sense.
 
 > If it doesn't: Press `N` with `R2` and press `O` with `R3`. You have to stretch your fingers! Even though `N` is supposed to be a comfortable key, this is uncomfortable! 
 
-Solution: going through the character list in order to assign to a key, assign letters which are most commonly paired with it to more comfortable keys. AKA skip to the next ordered comfort placement if the current one does not "align" with the current character's most common pair
+solution: when going through the character list in order to assign to a key, assign letters which are most commonly paired with it to more comfortable keys. AKA skip to the next ordered comfort placement if the current one does not "align" with the current character's most common pair. can be improved.
 
-- **Display which letter is used the most between all digraphs.**
+**display which letter is used the most between all digraphs.**
 
-<img width="1270" alt="Screen Shot 2022-12-18 at 10 31 55 PM" src="https://user-images.githubusercontent.com/114739901/208362398-f994f75f-0247-4e54-b4ac-a958f051ec3c.png">
+```python 'ignore
+# Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
+for digraph in cintiguous_count.keys():
+    for letter in digraph:
+        frequency_letter[letter] += contiguous_count[digraph]
+```
 
 <img width="1278" alt="Screen Shot 2022-12-18 at 10 32 35 PM" src="https://user-images.githubusercontent.com/114739901/208362475-e518eefa-975d-4628-a2ea-9d4573ce9f51.png">
 
-- **Access the coordinate point for every physical key on the QWERTY keyboard**
+**access the coordinate point for every physical key on the QWERTY keyboard**
 
 ![Keyboard-333](https://user-images.githubusercontent.com/114739901/208387727-c380b3e1-61de-473f-8150-3b83b24ad315.jpg)
 
-<img width="1255" alt="Screen Shot 2022-12-19 at 12 46 50 AM" src="https://user-images.githubusercontent.com/114739901/208384595-b1036bfa-766d-41bc-83f5-0506fa15858a.png">
+```python 'ignore
+qwerty = "qwertyuiopasdfghjklzxcvbnm"
+row: int
+for letter in qwerty:
+    column: int
+    ind = qwerty.index(letter)
+    for size in list(reversed(KEYBOARD_PSUM_ROWS)):
+        if ind + 1 > size:
+            row = KEYBOARD_PSUM_ROWS.index(size)
+            column = size
+            break
+    QWERTY_KEY_PAIR[letter.upper()] = (row, ind - column)
+```
 
 <img width="1261" alt="Screen Shot 2022-12-19 at 12 53 46 AM" src="https://user-images.githubusercontent.com/114739901/208386045-1f75ecbc-bdb3-40e2-9cdb-02e68e25aad6.png">
 
-> **For example, now the `e` key on the keyboard (home position for `L3`) is accessible through the point `[0][2]`, which is unique to the `e` QWERTY key only (whose new character value will be determined later)**
+> **for example, now the `e` key on the keyboard (home position for `L3`) is accessible through the point `[0][2]`, which is unique to the `e` QWERTY key only (whose new character value will be determined later)**
 
-- **Create a subjective ordered list of the QWERTY keys i find most comfortable to press given my personal hand positioning**
+**create a subjective ordered list of the QWERTY keys i find most comfortable to press given my personal hand positioning**
 
-<img width="785" alt="Screen Shot 2022-12-19 at 1 54 07 AM" src="https://user-images.githubusercontent.com/114739901/208398096-3a6d0d91-c061-431a-bd9f-6ca2f5f47e2e.png">
+```python 'ignore
+QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
+                            'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
+```
 
 - **Create a way to access QWERTY key in finger notation based on character**
 
