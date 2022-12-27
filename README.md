@@ -217,19 +217,28 @@ QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
                             'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 ```
 
-- **Create a way to access QWERTY key in finger notation based on character**
+**create a way to access QWERTY key in finger notation based on character**
 
-<img width="1271" alt="Screen Shot 2022-12-19 at 2 40 33 AM" src="https://user-images.githubusercontent.com/114739901/208407645-a6157fde-b009-48d7-864f-1392dc5ff9ee.png">
+```python 'ignore
+get_finger("E")
+get_finger("J")
+get_finger("H")
+```
 
 <img width="1267" alt="Screen Shot 2022-12-19 at 2 40 26 AM" src="https://user-images.githubusercontent.com/114739901/208407622-df029a6d-cb12-4e66-a483-4c69f6b8a793.png">
 
-- **Display other QWERTY keys (physical keys) assigned to specific QWERTY key**
+**diisplay other QWERTY keys (physical keys) assigned to specific QWERTY key**
+
+```python 'ignore
+char = 'E'
+print(f'FINGER IN CHARGE OF [{char}]: ', end = "")
+for key in get_finger(char).keys:
+    print(f'[{key.qwerty_key}] ', end = "")
+```
 
 <img width="1311" alt="Screen Shot 2022-12-19 at 3 07 11 AM" src="https://user-images.githubusercontent.com/114739901/208412509-e5751cfd-9d80-4d87-8f97-051059d24689.png">
 
-<img width="1182" alt="Screen Shot 2022-12-19 at 3 07 30 AM" src="https://user-images.githubusercontent.com/114739901/208412559-cba2590f-47ed-4528-b35c-91cea591923b.png">
-
-- **Group each char together with the digraphs that contain the char. Order the digraphs by occurrence frequency. Only show the first n amount (`n` = 5 in this case)**
+**group each char together with the digraphs that contain the char. order the digraphs by occurrence frequency. only show the first n amount (`n` = 5 in this case)**
 
 <img width="1266" alt="Screen Shot 2022-12-19 at 1 57 43 AM" src="https://user-images.githubusercontent.com/114739901/208398828-390cb09f-de02-4a0a-a06f-060449c127be.png">
 
@@ -261,6 +270,3 @@ The following image represents each neighboring letter (`n` = 1..5), the QWERTY 
 > This layout, for example, is most comfortable at lower typing speeds. Think of the word `tacos`. All of the letters are located in the most comfortable spots using two of the most comfortable fingers (`R2`, `R3`). The next goal is to make sure this never happens. We want the keys of common digraphs (`ac` for example) to be as far away from each other as possible to ensure that they can be typed using different fingers (minimizing overall keystroke time).
 
 <img width="1405" alt="Screen Shot 2022-12-19 at 4 50 45 AM" src="https://user-images.githubusercontent.com/114739901/208430211-485a4a07-7b52-4359-a2b3-4171ec1a554c.png">
-
-
-
