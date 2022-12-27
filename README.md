@@ -29,7 +29,7 @@ therefore, the set of keys that a specific finger is used to pressing are labele
 </br>
 
 ### what are '_the keys that the user feels most comfortable pressing_'?
-this program reassigns alphabet characters to different keys on the keyboard. because some characters in the english language are more common than others (`e`, for example, is much more common than `x`), their assigned key should feel more comfortable to press
+this program reassigns alphabet characters to different keys on the keyboard. because some characters in the english language are more common than others (`e`, for example, is much more common than `x`), their assigned key should naturally feel more comfortable to press.
 
 therefore, we need to create a prioritized list of the keyboard keys (QWERTY keys) that are most comfortable to press. this often starts off with the keys that your [fingers naturally lay on](#what-is-natural-finger-positioning).
 
@@ -50,13 +50,20 @@ well, nobody is perfect. this goes for your fingers as well. some fingers work h
 
 > try it yourself! type the word `look`. if we type it the same way, we use the same finger for all four letters, meaning that we need to spend the time it takes for four complete keystroke in order to type this word.
 
-> as a comparison, type the word `beacons`. this might not be universal, but i can type `beaconse` faster than i can type the word `look`. this is because the diversity in finger usage, which is an idea that this program acknowledges and takes advantage of. this is covered further in 
+> as a comparison, type the word `beacons`. this might not be universal, but i can type `beacons` faster than i can type the word `look`. this is because the diversity in finger usage, which is an idea that this program acknowledges and takes advantage of.
 
-beacon look llook
+> now try the word `sewers`. even though this word changes between fingers, it still uses 2 fingers for the entire 6 letter string! because of this, it almost suffers the same fate as `look` despite having some finger diversity...
+
+from this point onwards, familiarize yourself with the following notation:
+
+- `L` signifies `Left hand`. 
+- `R` signifies `Right hand`. 
+- `1..5` signifies fingers, where `1` is thumb and `5` is pinky.  
+  
+therefore, from left to right, the order of fingers is `L5`, `L4`, `L3`, `L2`, `L1`, `R1`, `R2`, `R3`, `R4`, `R5`.
+
+> the above statement assumes you have 10 fingers
 </br>
-
-> Notation: `L` signifies `Left hand`. `R` signifies `Right hand`. `1..5` signifies fingers, where `1` is thumb and `5` is pinky. Therefore, from left to right, the order of fingers is `L5`, `L4`, `L3`, `L2`, `L1`, `R1`, `R2`, `R3`, `R4`, `R5`.
-
 
 **Try it yourself! Type `beacon` and then type `reviewers`. As you can probably tell, `beacon` is much easier to type than `reviewers` because of the diversity in finger usage (and consistent hand swapping).** beacons
 
