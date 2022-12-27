@@ -66,7 +66,7 @@ class Keyboard:
     def print(self, is_raw) -> None:
         self.print_newline()
         for row in range(len(self.keyboard)):
-            if (not is_raw):
+            if not is_raw:
                 self.print_space(row)
             for key in self.keyboard[row]:
                 self.print_key(key.letter)
@@ -139,13 +139,14 @@ def populate_qwerty_pairing():
     row: int
     for letter in qwerty:
         column: int
+        ind = qwerty.index(letter)
         for size in list(reversed(KEYBOARD_PSUM_ROWS)):
-            if qwerty.index(letter) + 1 > size:
+            if ind + 1 > size:
                 row = KEYBOARD_PSUM_ROWS.index(size)
                 column = size
                 break
         qwerty_key_pair[letter.upper()] = (
-            row, qwerty.index(letter) - (column))
+            row, ind - (column))
 
 
 def get_finger(qwerty_key: str) -> Finger:
