@@ -215,6 +215,9 @@ ordered_keys = list(reversed({k: v for k, v in sorted(
     frequency_letter.items(), key=lambda item: item[1])}.keys()))
 
 for key in ordered_keys:
+    if (keyboard.contains(key.upper())):
+        continue
+
     # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot,
     # as the 'F' QWERTY key is the most comfortable (subjective).
     # The 'F' QWERTY key exists at qwerty_key_pair['F'] point, which is (1, 3). Therefore,
@@ -230,6 +233,7 @@ for key in ordered_keys:
         count += 1
         qwerty_key_status += 1 # Linear probing
         # If the QWERTY key is already assigned to a key, move to the next most comfortable QWERTY key.
+
         letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         row = qwerty_key_pair[letter][0]
         column = qwerty_key_pair[letter][1]
@@ -240,21 +244,33 @@ for key in ordered_keys:
             column = qwerty_key_pair[letter][1]
             break"""
 
-    #print(qwerty_key_pair[letter])
+    other_chars_in_common_digraphs = []
+    for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
+        other_chars_in_common_digraphs.append(digraph.replace(key, ""))
+
     while (1):
         if not get_finger(key.upper()):
+            # This is reached if the qwerty key has not been assigned to any character yet.
             break
-        break
-letter = QWERTY_KEY_COMFORT_ORDER[0]
-row = qwerty_key_pair[letter][0]
-column = qwerty_key_pair[letter][1]
-print(keyboard.keyboard[row][column].letter)
-keyboard.keyboard[row][column].letter = 'e'.upper()
-print(keyboard.keyboard[row][column].letter)
-print(row, column)
-for key in get_finger('F').keys:
-    print(key.letter)
 
+        for k in get_finger(QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]).keys:
+            if k.letter.lower() not in other_chars_in_common_digraphs:
+                break
+            else:
+                # This is reached if the current key's common neighbors have been assigned to the same qwerty key in question.
+                # Therefore we ++ qks (move to next comfort key) and try again.
+                qwerty_key_status += 1
+                continue
+            # Technically, this loop should not end naturally. If it ends naturally, it means no available
+            # spot was open. If this happens, we instead want to assign the primary next comfort qwerty key to the key
+
+        break
+    # If this is reached, then the qwerty key (qwerty_key_status) has not been assigned to a common neighbor
+    # of the iteration key.
+
+    keyboard.keyboard[row][column].letter = key.upper()
+    print(f'{letter} is being set to {key.upper()}')
+keyboard.print(0)
 
 """
     letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
