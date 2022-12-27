@@ -153,6 +153,8 @@ def get_finger(qwerty_key: str) -> Finger:
     row = qwerty_key_pair[qwerty_key][0]
     column = qwerty_key_pair[qwerty_key][1]
     for finger in fingers.values():
+        if not finger.keys[0]: 
+            continue
         for key in finger.keys:
             if (key.row == row and key.column == column):
                 return finger
@@ -219,6 +221,42 @@ for key in ordered_keys:
     # the new 'E' key will get assigned to keyboard.keyboard[1][3]. This process repeats,
     # except that if a finger (in this case, L2 is assigned to (1,3)) is already assigned to
     # a key that is a common pair with the current iterated key, it moves to the next option. Tada!
+
+    letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
+    row = qwerty_key_pair[letter][0]
+    column = qwerty_key_pair[letter][1]
+    count = 0
+    while keyboard.keyboard[row][column].letter != "-":
+        count += 1
+        qwerty_key_status += 1 # Linear probing
+        # If the QWERTY key is already assigned to a key, move to the next most comfortable QWERTY key.
+        letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
+        row = qwerty_key_pair[letter][0]
+        column = qwerty_key_pair[letter][1]
+        
+        """if qwerty_key_status > 100:
+            letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status - count % 26]
+            row = qwerty_key_pair[letter][0]
+            column = qwerty_key_pair[letter][1]
+            break"""
+
+    #print(qwerty_key_pair[letter])
+    while (1):
+        if not get_finger(key.upper()):
+            break
+        break
+letter = QWERTY_KEY_COMFORT_ORDER[0]
+row = qwerty_key_pair[letter][0]
+column = qwerty_key_pair[letter][1]
+print(keyboard.keyboard[row][column].letter)
+keyboard.keyboard[row][column].letter = 'e'.upper()
+print(keyboard.keyboard[row][column].letter)
+print(row, column)
+for key in get_finger('F').keys:
+    print(key.letter)
+
+
+"""
     letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
     row = qwerty_key_pair[letter][0]
     column = qwerty_key_pair[letter][1]
@@ -251,6 +289,7 @@ for key in ordered_keys:
 
     qwerty_key_status += 1
 keyboard.print(0)
+"""
 
 # Prints assigned finger diagram
 """
