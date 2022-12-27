@@ -48,7 +48,7 @@ well, nobody is perfect. this goes for your fingers as well. some fingers work h
 
 **_in my opinion, the biggest constraint to inhumane 26-key typing speeds are words whose digraph (sets of two) letters are typed using the same finger._**
 
-> try it yourself! type the word `look`. if we type it the same way, we use the same finger for all four letters. this means that we allocate extra wasted time in between each letter of the word to move our finger to the next key (or to unpress and repress the same key)
+> try it yourself! type the word `look`. if we type it the same way, we use the same finger for all four letters. this means that we allocate extra wasted time towards moving fingers to different keys for contiguous letters that use the same finger (or to unpress and repress the same key).
 
 > as a comparison, type the word `beacons`. this might not be universal, but i can type `beacons` faster than i can type the word `look`. this is because the diversity in finger usage, which is an idea that this program acknowledges and takes advantage of.
 
@@ -88,12 +88,23 @@ next, we check to see which digraphs are most frequent
 
 <img width="1702" alt="Screenshot 2022-12-27 at 12 47 41 AM" src="https://user-images.githubusercontent.com/114739901/209639547-86384fd3-92d0-45a9-9728-25b52c4beef9.png">
 
+at this point, we can check to see which letters are most frequent (ex. `e`, `i`, `a`...) and then list their most common digraph pairings (which we can use to find their most common neighbor).
 
-starting with the most frequent letters in the english alphabet, this program assigns those select characters to the most [most comfortable QWERTY key positions](#what-are-the-keys-that-the-user-feels-most-comfortable-pressing). next, 
+<img width="1684" alt="Screenshot 2022-12-27 at 12 51 17 AM" src="https://user-images.githubusercontent.com/114739901/209640102-50a8eebd-6956-4e35-82e5-8eae95cee93e.png">
 
+> this output above only displays the 5 most common digraph pairings.
 
-creating a keyboard layout that assigns keys to fingers that are not taken up by their most common digraph (and prioritizes the user's most comfortable keys (typically determined by natural positioning) when assigning the next key)
+starting with the most frequent letters, we assign those select characters to the [most comfortable QWERTY key positions](#what-are-the-keys-that-the-user-feels-most-comfortable-pressing). 
 
+for example, the `e` character (most common) will get assigned to the `F` QWERTY key, which was listed as the most comfortable.
+
+after assigning the most frequent letter to the most comfortable spot, we assign the letter's common neighbors (digraph pairings) to the next few most comfortable keys **that have not already been assigned to a finger**
+
+**this will ensure that the most common character is assigned to a finger that none of the character's common neighbors are assigned to**
+
+we repeat this process with the next most frequent letter (`i`), except that while we are assigning characters to QWERTY keys (prioritized by comfort) from this point onward, we skip the QWERTY keys that are already assigned to a finger in charge of the letter's (`i`) other common neighbors. if there are no available spots, then just assign to the primary comfortable QWERTY key that was skipped over.
+
+**_this algorithm will create a keyboard layout that maximizes typing speed by minimizing the wasted time allocated towards moving fingers to different keys for contiguous letters that use the same finger_**
 
 ### 
 -------------
