@@ -140,7 +140,7 @@ we repeat this process with the next most frequent letter (`i`), except that whi
 
 **create a way to display keyboard**
 
-```python 'ignore
+```python
 # inside class
 def print(self, is_raw) -> None:
     for row in range(len(self.keyboard)):
@@ -179,7 +179,7 @@ solution: when going through the character list in order to assign to a key, ass
 
 **display which letter is used the most between all digraphs.**
 
-```python 'ignore
+```python
 # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
 for digraph in cintiguous_count.keys():
     for letter in digraph:
@@ -192,7 +192,7 @@ for digraph in cintiguous_count.keys():
 
 ![Keyboard-333](https://user-images.githubusercontent.com/114739901/208387727-c380b3e1-61de-473f-8150-3b83b24ad315.jpg)
 
-```python 'ignore
+```python
 qwerty = "qwertyuiopasdfghjklzxcvbnm"
 row: int
 for letter in qwerty:
@@ -212,14 +212,14 @@ for letter in qwerty:
 
 **create a subjective ordered list of the QWERTY keys i find most comfortable to press given my personal hand positioning**
 
-```python 'ignore
+```python
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
                             'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 ```
 
 **create a way to access QWERTY key in finger notation based on character**
 
-```python 'ignore
+```python
 get_finger("E")
 get_finger("J")
 get_finger("H")
@@ -229,7 +229,7 @@ get_finger("H")
 
 **display other QWERTY keys (physical keys) assigned to specific QWERTY key**
 
-```python 'ignore
+```python
 char = 'E'
 print(f'FINGER IN CHARGE OF [{char}]: ', end = "")
 for key in get_finger(char).keys:
