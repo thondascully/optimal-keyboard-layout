@@ -1,7 +1,7 @@
 from pynput import keyboard
 import os
 
-learning_string = "JFJFJFJF JFJFJFJFJFJFJFJUR URURURURUR URURUR UFUF UFUJRJR JRJRK K KKRK RJFKUKKJFU RKJFFFJKRU FJRUFFRU FFRUFFRUFF KUUFF JRKFURJ FKFF JFJFJFJFKRK RKRK RKRU RURURURKFK FKFKKU KUKUKUFUFUF URKRKR"
+learning_string = "JFJFJFJFJFJFURURURFUFFUJRJRJRJRKKJFKUKKJFRKJFFFJKRUFJRUFFRUFFRUFFRUFFKUUFFJRKFURJFKFFJFJFJFJFKRKRKRKRKRUURURURKFKFKFKKUKUKUKUFUFUFRKRKR"
 
 active_keys = []
 
@@ -47,17 +47,16 @@ def print_key(key) -> None:
     print(f' {key} ', end="")
 
 def print_keyboard(string) -> None:
-    print("\n", string, "\n")
+    print("\n", string[0], string[1:], "...")
+    print(" ^\n")
     for row in range(len(kb)):
         print_space(row)
         for key in kb[row]:
             print_key(key)
-        print("")
+        print()
     print("\n")
 
 def show(char: str) -> None:
-    if char == ' ':
-        return
     tuple = KEYBOARD_MAP[char]
     active_keys.append(tuple)
     row = tuple[0]
@@ -76,7 +75,7 @@ def new(next) -> None:
     os.system('clear')
     clear_all()
     show(learning_string[next])
-    print_keyboard(learning_string[next: next + 10])
+    print_keyboard(learning_string[next: next + 5])
 
 # ------------------------------- LEARNING MODULE ------------------------------- #
 
@@ -85,11 +84,6 @@ new(next)
 
 def on_press(key):
     global next
-
-    if key.char == ' ' and key.char == learning_string[next]:
-        next += 1
-        new(next)
-
     if key.char == learning_string[next].lower():
         next += 1
         new(next)
