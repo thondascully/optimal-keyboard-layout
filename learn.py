@@ -1,35 +1,37 @@
 learning_string = "jjjjffffjfjf"
 
+active_keys = []
+
 KEYBOARD_ROW_SIZE = [10, 9, 7]
 KEYBOARD_MAP = {
-    (0, 0): "S",
-    (0, 1): "M",
-    (0, 2): "N",
-    (0, 3): "A",
-    (0, 4): "X",
-    (0, 5): "Z",
-    (0, 6): "U",
-    (0, 7): "K",
-    (0, 8): "T",
-    (0, 9): "I",
+    "S": (0, 0),
+    "M": (0, 1),
+    "N": (0, 2),
+    "A": (0, 3),
+    "X": (0, 4),
+    "Z": (0, 5),
+    "U": (0, 6),
+    "K": (0, 7),
+    "T": (0, 8),
+    "I": (0, 9),
 
-    (1, 0): "L",
-    (1, 1): "H",
-    (1, 2): "G",
-    (1, 3): "E",
-    (1, 4): "Q",
-    (1, 5): "P",
-    (1, 6): "R",
-    (1, 7): "C",
-    (1, 8): "O",
+    "L": (1, 0),
+    "H": (1, 1),
+    "G": (1, 2),
+    "E": (1, 3),
+    "Q": (1, 4),
+    "P": (1, 5),
+    "R": (1, 6),
+    "C": (1, 7),
+    "O": (1, 8),
 
-    (2, 0): "J",
-    (2, 1): "B",
-    (2, 2): "F",
-    (2, 3): "Y",
-    (2, 4): "V",
-    (2, 5): "D",
-    (2, 6): "W",
+    "J": (2, 0),
+    "B": (2, 1),
+    "F": (2, 2),
+    "Y": (2, 3),
+    "V": (2, 4),
+    "D": (2, 5),
+    "W": (2, 6)
 }
 
 keyboard = [['-' for i in range(KEYBOARD_ROW_SIZE[j])]
@@ -46,12 +48,23 @@ def print_keyboard() -> None:
         print_space(row)
         for key in keyboard[row]:
             print_key(key)
-        print("\n")
+        print()
 
 def show(char: tuple) -> None:
+    active_keys.append(char)
     row = char[0]
     col = char[1]
     keyboard[row][col] = KEYBOARD_MAP[char]
 
+def clear_all() -> None:
+    for char in active_keys:
+        row = char[0]
+        col = char[1]
+        keyboard[row][col] = '-'
+
 show((1, 3))
 print_keyboard()
+
+clear_all()
+print_keyboard()
+
