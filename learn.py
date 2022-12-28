@@ -41,17 +41,12 @@ def print_space(size) -> None:
 def print_key(key) -> None:
     print(f' {key} ', end="")
 
-def print_newline() -> None:
-    print("")
-
 def print_keyboard() -> None:
-    print_newline()
     for row in range(len(keyboard)):
         print_space(row)
         for key in keyboard[row]:
             print_key(key)
-        print_newline()
-    print_newline()
+        print("\n")
 
 def show(char: tuple) -> None:
     row = char[0]
