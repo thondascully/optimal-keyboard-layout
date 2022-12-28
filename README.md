@@ -33,7 +33,7 @@ this program reassigns alphabet characters to different keys on the keyboard. be
 
 therefore, we need to create a prioritized list of the keyboard keys (QWERTY keys) that are most comfortable to press. this often starts off with the keys that your [fingers naturally lay on](#what-is-natural-finger-positioning).
 
-```python 'ignore
+```python 
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
                             'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 ```
