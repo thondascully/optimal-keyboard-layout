@@ -22,3 +22,4 @@ def print_keyboard() -> None:
             print_key(key.letter)
         print_newline()
     print_newline()
+

@@ -33,7 +33,7 @@ this program reassigns alphabet characters to different keys on the keyboard. be
 
 therefore, we need to create a prioritized list of the keyboard keys (QWERTY keys) that are most comfortable to press. this often starts off with the keys that your [fingers naturally lay on](#what-is-natural-finger-positioning).
 
-```python 'ignore
+```python 
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
                             'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 ```
@@ -140,7 +140,7 @@ we repeat this process with the next most frequent letter (`i`), except that whi
 
 **create a way to display keyboard**
 
-```python 'ignore
+```python
 # inside class
 def print(self, is_raw) -> None:
     for row in range(len(self.keyboard)):
@@ -179,7 +179,7 @@ solution: when going through the character list in order to assign to a key, ass
 
 **display which letter is used the most between all digraphs.**
 
-```python 'ignore
+```python
 # Adds 1 to frequency_letter[letter] for every occurrence of letter in every digraph
 for digraph in cintiguous_count.keys():
     for letter in digraph:
@@ -192,7 +192,7 @@ for digraph in cintiguous_count.keys():
 
 ![Keyboard-333](https://user-images.githubusercontent.com/114739901/208387727-c380b3e1-61de-473f-8150-3b83b24ad315.jpg)
 
-```python 'ignore
+```python
 qwerty = "qwertyuiopasdfghjklzxcvbnm"
 row: int
 for letter in qwerty:
@@ -212,14 +212,14 @@ for letter in qwerty:
 
 **create a subjective ordered list of the QWERTY keys i find most comfortable to press given my personal hand positioning**
 
-```python 'ignore
+```python
 QWERTY_KEY_COMFORT_ORDER = ['F', 'J', 'E', 'O', 'A', 'P', 'M', 'L', 'I', 'Q',
                             'R', 'K', 'U', 'H', 'W', 'N', 'S', 'D', 'T', 'C', 'G', 'V', 'Y', 'B', 'X', 'Z']
 ```
 
 **create a way to access QWERTY key in finger notation based on character**
 
-```python 'ignore
+```python
 get_finger("E")
 get_finger("J")
 get_finger("H")
@@ -229,7 +229,7 @@ get_finger("H")
 
 **display other QWERTY keys (physical keys) assigned to specific QWERTY key**
 
-```python 'ignore
+```python
 char = 'E'
 print(f'FINGER IN CHARGE OF [{char}]: ', end = "")
 for key in get_finger(char).keys:
@@ -270,3 +270,7 @@ the following image represents each neighboring letter (`n` = 1..5), the QWERTY 
 > this layout, for example, is most comfortable at lower typing speeds. Think of the word `tacos`. All of the letters are located in the most comfortable spots using two of the most comfortable fingers (`R2`, `R3`). The next goal is to make sure this never happens. We want the keys of common digraphs (`ac` for example) to be as far away from each other as possible to ensure that they can be typed using different fingers (minimizing overall keystroke time).
 
 <img width="1405" alt="Screen Shot 2022-12-19 at 4 50 45 AM" src="https://user-images.githubusercontent.com/114739901/208430211-485a4a07-7b52-4359-a2b3-4171ec1a554c.png">
+
+> finally, we can add the neighbor constraint while assigning keys! this is the end result:
+
+https://user-images.githubusercontent.com/114739901/209783290-d3668a84-ae9a-4659-b4aa-996e3de6fb33.mov
