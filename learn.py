@@ -1,3 +1,5 @@
+from pynput import keyboard
+
 learning_string = "jjjjffffjfjf"
 
 active_keys = []
@@ -34,7 +36,7 @@ KEYBOARD_MAP = {
     "W": (2, 6)
 }
 
-keyboard = [['-' for i in range(KEYBOARD_ROW_SIZE[j])]
+kb = [['-' for i in range(KEYBOARD_ROW_SIZE[j])]
                          for j in range(len(KEYBOARD_ROW_SIZE))]
 
 def print_space(size) -> None:
@@ -44,9 +46,9 @@ def print_key(key) -> None:
     print(f' {key} ', end="")
 
 def print_keyboard() -> None:
-    for row in range(len(keyboard)):
+    for row in range(len(kb)):
         print_space(row)
-        for key in keyboard[row]:
+        for key in kb[row]:
             print_key(key)
         print()
 
@@ -55,13 +57,13 @@ def show(char: str) -> None:
     active_keys.append(tuple)
     row = tuple[0]
     col = tuple[1]
-    keyboard[row][col] = char
+    kb[row][col] = char
 
 def clear_all() -> None:
     for char in active_keys:
         row = char[0]
         col = char[1]
-        keyboard[row][col] = '-'
+        kb[row][col] = '-'
 
 show('Q')
 print_keyboard()
@@ -69,3 +71,12 @@ print_keyboard()
 clear_all()
 print_keyboard()
 
+# ------------------------------- LEARNING MODULE ------------------------------- #
+
+print("\n")
+
+with keyboard.Events() as events:
+    # Block for as much as possible
+    event = events.get(1e6)
+    if event.key == keyboard.KeyCode.from_char('s'):
+        print("YES")
