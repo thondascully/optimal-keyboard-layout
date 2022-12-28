@@ -237,12 +237,6 @@ for key in ordered_keys:
         letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         row = qwerty_key_pair[letter][0]
         column = qwerty_key_pair[letter][1]
-        
-        """if qwerty_key_status > 100:
-            letter = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status - count % 26]
-            row = qwerty_key_pair[letter][0]
-            column = qwerty_key_pair[letter][1]
-            break"""
 
     other_chars_in_common_digraphs = []
     for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(key), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
@@ -269,13 +263,13 @@ for key in ordered_keys:
     # of the iteration key.
 
     keyboard.keyboard[row][column].letter = key.upper()
-    print(f'{letter} is being set to {key.upper()}')
 
     for char in other_chars_in_common_digraphs:
         if char == '':
             continue
         if keyboard.contains(char.upper()):
             continue
+
         qwerty_key_status += 1  # Linear probing
         next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         nkey = qwerty_key_pair[next_key]
@@ -283,19 +277,18 @@ for key in ordered_keys:
         neighbor_other_chars_in_common_digraphs = []
         for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(char), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
             neighbor_other_chars_in_common_digraphs.append(digraph.replace(char, ""))
-        print(char, neighbor_other_chars_in_common_digraphs)
+
+        print(qwerty_key_status)
         while (1):
             if not get_finger(char.upper()):
                 break
 
             if keyboard.keyboard[nkey[0]][nkey[1]].letter != "-":
                 qwerty_key_status += 1
-                print("..")
-                continue # could stall here.
+                continue
+
             for k in get_finger(QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]).keys:
-                print(k.letter.lower())
                 if k.letter != "-":
-                    print(k.letter.lower())
                     if k.letter.lower() not in neighbor_other_chars_in_common_digraphs:
                         break
                     else:
@@ -306,31 +299,10 @@ for key in ordered_keys:
         next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         nkey = qwerty_key_pair[next_key]
         keyboard.keyboard[nkey[0]][nkey[1]].letter = char.upper()
-        print(f'{next_key} is being set to {char.upper()}')
 
     qwerty_key_status += 1
 
 keyboard.print(0)
-
-""" # what i realized: the break at the end of the while loop makes it useless since things will end for loop
-    # without finding correct spot and then just break out. instead, i should only make the break happen if a correct spot is found
-    maybe add a count var? if count exceeds 100 or somtehing, assign 
-        while (1):
-            if not get_finger(char.upper()):
-                break
-
-            if keyboard.keyboard[nkey[0]][nkey[1]].letter != "-":
-                qwerty_key_status += 1
-                print("..")
-                continue # could stall here.
-            for k in get_finger(QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]).keys:
-                if k.letter != "-" and k.letter.lower() not in neighbor_other_chars_in_common_digraphs:
-                    break
-                qwerty_key_status += 1
-
-        keyboard.keyboard[nkey[0]][nkey[1]].letter = char.upper()
-        print(f'{next_key} is being set to {char.upper()}')
-"""
 
 # Prints assigned finger diagram
 """
