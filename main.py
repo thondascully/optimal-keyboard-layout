@@ -5,6 +5,8 @@ Teo Honda-Scully | 2022
 import typing
 import parse_pdf
 import operator
+import time
+import os
 
 alpha = "abcdefghijklmnopqrstuvwxyz"
 DIGRAPH_GROUP_ACCT_AMT = 5
@@ -147,6 +149,10 @@ def populate_qwerty_pairing():
                 break
         qwerty_key_pair[letter.upper()] = (
             row, ind - (column))
+
+def print_keyboard(keyboard: Keyboard):
+    keyboard.print(0)
+    time.sleep(500)
 
 
 def get_finger(qwerty_key: str) -> Finger:
@@ -301,4 +307,4 @@ for key in ordered_keys:
 
     qwerty_key_status += 1
 
-keyboard.print(0)
+print_keyboard(keyboard)
