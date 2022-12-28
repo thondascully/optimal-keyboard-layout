@@ -53,7 +53,10 @@ def print_keyboard() -> None:
         print_newline()
     print_newline()
 
-def add(char: str) -> None:
-    pass
+def show(char: tuple) -> None:
+    row = char[0]
+    col = char[1]
+    keyboard[row][col] = KEYBOARD_MAP[char]
 
+show((1, 3))
 print_keyboard()
