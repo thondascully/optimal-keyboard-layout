@@ -21,6 +21,7 @@ fingers = {}
 contiguous_count = {}
 frequency_letter = {}
 
+os.system("clear")
 
 class Key:
     __slots__ = ['letter', 'row', 'column', 'qwerty_key']
@@ -152,7 +153,8 @@ def populate_qwerty_pairing():
 
 def print_keyboard(keyboard: Keyboard):
     keyboard.print(0)
-    time.sleep(500)
+    time.sleep(0.5)
+    os.system('clear')
 
 
 def get_finger(qwerty_key: str) -> Finger:
@@ -269,6 +271,7 @@ for key in ordered_keys:
     # of the iteration key.
 
     keyboard.keyboard[row][column].letter = key.upper()
+    print_keyboard(keyboard)
 
     for char in other_chars_in_common_digraphs:
         if char == '':
@@ -304,6 +307,7 @@ for key in ordered_keys:
         next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         nkey = qwerty_key_pair[next_key]
         keyboard.keyboard[nkey[0]][nkey[1]].letter = char.upper()
+        print_keyboard(keyboard)
 
     qwerty_key_status += 1
 
