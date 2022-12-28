@@ -154,7 +154,8 @@ def populate_qwerty_pairing():
 def print_keyboard(keyboard: Keyboard, ms, message, var):
     os.system("clear")
     keyboard.print(0)
-    print(message % var.upper())
+    if message != "":
+        print(message % var.upper())
     time.sleep(ms)
 
 def get_finger(qwerty_key: str) -> Finger:
@@ -274,7 +275,9 @@ for key in ordered_keys:
     # of the iteration key.
 
     keyboard.keyboard[row][column].letter = key.upper()
+    print_keyboard(keyboard, 0, "", "")
     print("assigned key '%s' to the %s key" % (key.upper(), letter))
+    time.sleep(0.5)
 
     for char in other_chars_in_common_digraphs:
         if char == '':
@@ -295,6 +298,8 @@ for key in ordered_keys:
                 break
 
             if keyboard.keyboard[nkey[0]][nkey[1]].letter != "-":
+                print("trying to assign '%s' to the %s key, but key is taken" % (char.upper(), next_key))
+                time.sleep(0.5)
                 qwerty_key_status += 1
                 continue
 
@@ -303,6 +308,8 @@ for key in ordered_keys:
                     if k.letter.lower() not in neighbor_other_chars_in_common_digraphs:
                         break
                     else:
+                        print("trying to assign '%s' to the %s key, but %s's common neighbor already owns this finger" % (char.upper(), next_key, char.upper()))
+                        time.sleep(0.5)
                         qwerty_key_status += 1
 
             break
@@ -310,7 +317,10 @@ for key in ordered_keys:
         next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         nkey = qwerty_key_pair[next_key]
         keyboard.keyboard[nkey[0]][nkey[1]].letter = char.upper()
-        #print_keyboard(keyboard)
+
+        print_keyboard(keyboard, 0, "", "")
+        print("assigned key '%s' to the %s key" % (char.upper(), next_key))
+        time.sleep(0.5)
 
     qwerty_key_status += 1
 
