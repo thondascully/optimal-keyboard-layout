@@ -1,6 +1,7 @@
 from pynput import keyboard
+import os
 
-learning_string = "jjjjffffjfjf"
+learning_string = "JJJJFFFFJFJF"
 
 active_keys = []
 
@@ -40,17 +41,19 @@ kb = [['-' for i in range(KEYBOARD_ROW_SIZE[j])]
                          for j in range(len(KEYBOARD_ROW_SIZE))]
 
 def print_space(size) -> None:
-    print(' ' * size, end="")
+    print('   ' + ' ' * size, end="")
 
 def print_key(key) -> None:
     print(f' {key} ', end="")
 
 def print_keyboard() -> None:
+    print("\n")
     for row in range(len(kb)):
         print_space(row)
         for key in kb[row]:
             print_key(key)
-        print()
+        print("")
+    print("\n")
 
 def show(char: str) -> None:
     tuple = KEYBOARD_MAP[char]
@@ -65,18 +68,29 @@ def clear_all() -> None:
         col = char[1]
         kb[row][col] = '-'
 
-show('Q')
-print_keyboard()
+print("\n")
 
-clear_all()
-print_keyboard()
+def new(next) -> None:
+    os.system('clear')
+    clear_all()
+    show(learning_string[next])
+    print_keyboard()
 
 # ------------------------------- LEARNING MODULE ------------------------------- #
 
-print("\n")
+next = 0
+new(next)
 
-with keyboard.Events() as events:
-    # Block for as much as possible
-    event = events.get(1e6)
-    if event.key == keyboard.KeyCode.from_char('s'):
-        print("YES")
+def on_press(key):
+    global next
+    if key.char == learning_string[next].lower():
+        next += 1
+        new(next)
+    else:
+        print()
+
+listener = keyboard.Listener(on_press=on_press)
+listener.start()
+
+while(1):
+    pass
