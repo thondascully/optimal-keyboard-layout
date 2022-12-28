@@ -50,11 +50,12 @@ def print_keyboard() -> None:
             print_key(key)
         print()
 
-def show(char: tuple) -> None:
-    active_keys.append(char)
-    row = char[0]
-    col = char[1]
-    keyboard[row][col] = KEYBOARD_MAP[char]
+def show(char: str) -> None:
+    tuple = KEYBOARD_MAP[char]
+    active_keys.append(tuple)
+    row = tuple[0]
+    col = tuple[1]
+    keyboard[row][col] = char
 
 def clear_all() -> None:
     for char in active_keys:
@@ -62,7 +63,7 @@ def clear_all() -> None:
         col = char[1]
         keyboard[row][col] = '-'
 
-show((1, 3))
+show('Q')
 print_keyboard()
 
 clear_all()
