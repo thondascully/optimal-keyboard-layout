@@ -151,11 +151,11 @@ def populate_qwerty_pairing():
         qwerty_key_pair[letter.upper()] = (
             row, ind - (column))
 
-def print_keyboard(keyboard: Keyboard):
+def print_keyboard(keyboard: Keyboard, ms, message, var):
+    os.system("clear")
     keyboard.print(0)
-    time.sleep(0.5)
-    os.system('clear')
-
+    print(message % var.upper())
+    time.sleep(ms)
 
 def get_finger(qwerty_key: str) -> Finger:
     row = qwerty_key_pair[qwerty_key][0]
@@ -224,6 +224,7 @@ ordered_keys = list(reversed({k: v for k, v in sorted(
 
 for key in ordered_keys:
     if (keyboard.contains(key.upper())):
+        print_keyboard(keyboard, 0.5, "trying key '%s', but it is already in the keyboard", key)
         continue
 
     # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot,
@@ -238,6 +239,8 @@ for key in ordered_keys:
     column = qwerty_key_pair[letter][1]
     count = 0
     while keyboard.keyboard[row][column].letter != "-":
+        print("trying to assign '%s' to the %s key, but key is taken" % (key.upper(), letter))
+        time.sleep(0.5)
         count += 1
         qwerty_key_status += 1 # Linear probing
         # If the QWERTY key is already assigned to a key, move to the next most comfortable QWERTY key.
@@ -271,7 +274,7 @@ for key in ordered_keys:
     # of the iteration key.
 
     keyboard.keyboard[row][column].letter = key.upper()
-    print_keyboard(keyboard)
+    print("assigned key '%s' to the %s key" % (key.upper(), letter))
 
     for char in other_chars_in_common_digraphs:
         if char == '':
@@ -307,8 +310,8 @@ for key in ordered_keys:
         next_key = QWERTY_KEY_COMFORT_ORDER[qwerty_key_status % 26]
         nkey = qwerty_key_pair[next_key]
         keyboard.keyboard[nkey[0]][nkey[1]].letter = char.upper()
-        print_keyboard(keyboard)
+        #print_keyboard(keyboard)
 
     qwerty_key_status += 1
 
-print_keyboard(keyboard)
+#print_keyboard(keyboard)
