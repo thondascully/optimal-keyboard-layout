@@ -270,3 +270,7 @@ the following image represents each neighboring letter (`n` = 1..5), the QWERTY 
 > this layout, for example, is most comfortable at lower typing speeds. Think of the word `tacos`. All of the letters are located in the most comfortable spots using two of the most comfortable fingers (`R2`, `R3`). The next goal is to make sure this never happens. We want the keys of common digraphs (`ac` for example) to be as far away from each other as possible to ensure that they can be typed using different fingers (minimizing overall keystroke time).
 
 <img width="1405" alt="Screen Shot 2022-12-19 at 4 50 45 AM" src="https://user-images.githubusercontent.com/114739901/208430211-485a4a07-7b52-4359-a2b3-4171ec1a554c.png">
+
+> finally, we can add the neighbor constraint while assigning keys! this is the end result:
+
+https://user-images.githubusercontent.com/114739901/209783290-d3668a84-ae9a-4659-b4aa-996e3de6fb33.mov
