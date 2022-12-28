@@ -278,7 +278,6 @@ for key in ordered_keys:
         for digraph in list(reversed(list(filter(lambda digraph: digraph.__contains__(char), contiguous_count.keys()))))[:DIGRAPH_GROUP_ACCT_AMT]:
             neighbor_other_chars_in_common_digraphs.append(digraph.replace(char, ""))
 
-        print(qwerty_key_status)
         while (1):
             if not get_finger(char.upper()):
                 break
@@ -303,12 +302,3 @@ for key in ordered_keys:
     qwerty_key_status += 1
 
 keyboard.print(0)
-
-# Prints assigned finger diagram
-"""
-for finger in fingers.values():
-    print(f'\n{finger.id} | ', end="")
-    for key in finger.keys:
-        print(key.letter, end="")
-print("\n")
-"""
