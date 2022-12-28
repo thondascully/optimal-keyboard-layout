@@ -21,6 +21,10 @@ fingers = {}
 contiguous_count = {}
 frequency_letter = {}
 
+fail_time = 3
+fail_time_less = 1.5
+assign_time = 0.75
+
 os.system("clear")
 
 class Key:
@@ -225,7 +229,7 @@ ordered_keys = list(reversed({k: v for k, v in sorted(
 
 for key in ordered_keys:
     if (keyboard.contains(key.upper())):
-        print_keyboard(keyboard, 0.5, "trying key '%s', but it is already in the keyboard", key)
+        print_keyboard(keyboard, fail_time_less, "trying key '%s', but it is already in the keyboard", key)
         continue
 
     # Example: 'E' is most frequent. 'E' should now be assigned to the 'F' slot,
@@ -241,7 +245,7 @@ for key in ordered_keys:
     count = 0
     while keyboard.keyboard[row][column].letter != "-":
         print("trying to assign '%s' to the %s key, but key is taken" % (key.upper(), letter))
-        time.sleep(0.5)
+        time.sleep(fail_time_less)
         count += 1
         qwerty_key_status += 1 # Linear probing
         # If the QWERTY key is already assigned to a key, move to the next most comfortable QWERTY key.
@@ -277,7 +281,7 @@ for key in ordered_keys:
     keyboard.keyboard[row][column].letter = key.upper()
     print_keyboard(keyboard, 0, "", "")
     print("assigned key '%s' to the %s key" % (key.upper(), letter))
-    time.sleep(0.5)
+    time.sleep(assign_time)
 
     for char in other_chars_in_common_digraphs:
         if char == '':
@@ -299,7 +303,7 @@ for key in ordered_keys:
 
             if keyboard.keyboard[nkey[0]][nkey[1]].letter != "-":
                 print("trying to assign '%s' to the %s key, but key is taken" % (char.upper(), next_key))
-                time.sleep(0.5)
+                time.sleep(fail_time_less)
                 qwerty_key_status += 1
                 continue
 
@@ -309,7 +313,7 @@ for key in ordered_keys:
                         break
                     else:
                         print("trying to assign '%s' to the %s key, but %s's common neighbor already owns this finger" % (char.upper(), next_key, char.upper()))
-                        time.sleep(0.5)
+                        time.sleep(fail_time)
                         qwerty_key_status += 1
 
             break
@@ -320,7 +324,7 @@ for key in ordered_keys:
 
         print_keyboard(keyboard, 0, "", "")
         print("assigned key '%s' to the %s key" % (char.upper(), next_key))
-        time.sleep(0.5)
+        time.sleep(assign_time)
 
     qwerty_key_status += 1
 
