@@ -1,5 +1,17 @@
 from pynput import keyboard
-import os
+import os, termios, sys
+
+class EchoDisable:
+  fd: object
+  old: list
+  def __init__(self):
+    self.fd = sys.stdin
+    self.old = termios.tcgetattr(self.fd)
+    new = self.old[:]
+    new[3] &= ~(termios.ECHO | termios.ICANON)
+    termios.tcsetattr(self.fd, termios.TCSANOW, new)
+  def __del__(self):
+    termios.tcsetattr(self.fd, termios.TCSANOW, self.old)
 
 learning_string = "JFJFJFJFJFJFURURURFUFFUJRJRJRJRKKJFKUKKJFRKJFFFJKRUFJRUFFRUFFRUFFRUFFKUUFFJRKFURJFKFFJFJFJFJFKRKRKRKRKRUURURURKFKFKFKKUKUKUKUFUFUFRKRKR"
 
@@ -77,6 +89,8 @@ def new(next) -> None:
     show(learning_string[next])
     print_keyboard(learning_string[next: next + 5])
 
+_echo_disable = EchoDisable()
+
 # ------------------------------- LEARNING MODULE ------------------------------- #
 
 next = 0
@@ -91,7 +105,7 @@ def on_press(key):
         print()
 
 listener = keyboard.Listener(on_press=on_press)
-listener.start()
+#listener.start()
 
 while(1):
     pass
