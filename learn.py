@@ -81,6 +81,7 @@ def print_keyboard(string) -> None:
             print_key(key)
         print()
     print("\n")
+    set_cursor(100, 0)
 
 def show(char: str) -> None:
     tuple = KEYBOARD_MAP[char]
