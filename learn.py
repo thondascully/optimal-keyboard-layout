@@ -2,16 +2,19 @@ from pynput import keyboard
 import os, termios, sys
 
 class EchoDisable:
-  fd: object
-  old: list
-  def __init__(self):
-    self.fd = sys.stdin
-    self.old = termios.tcgetattr(self.fd)
-    new = self.old[:]
-    new[3] &= ~(termios.ECHO | termios.ICANON)
-    termios.tcsetattr(self.fd, termios.TCSANOW, new)
-  def __del__(self):
-    termios.tcsetattr(self.fd, termios.TCSANOW, self.old)
+    fd: object
+    old: list
+    def __init__(self):
+        self.fd = sys.stdin
+        self.old = termios.tcgetattr(self.fd)
+        new = self.old[:]
+        new[3] &= ~(termios.ECHO | termios.ICANON)
+        termios.tcsetattr(self.fd, termios.TCSANOW, new)
+    def __del__(self):
+        termios.tcsetattr(self.fd, termios.TCSANOW, self.old)
+
+out = sys.stdout
+
 
 learning_string = "JFJFJFJFJFJFURURURFUFFUJRJRJRJRKKJFKUKKJFRKJFFFJKRUFJRUFFRUFFRUFFRUFFKUUFFJRKFURJFKFFJFJFJFJFKRKRKRKRKRUURURURKFKFKFKKUKUKUKUFUFUFRKRKR"
 
