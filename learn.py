@@ -19,6 +19,11 @@ def set_cursor(col: int, row: int):
     out.write(f'\x1b[{row + 1};{col + 1}H')
     out.flush()
 
+def clear_screen():
+    out.write('\x1b[H\x1b[2J')
+    out.flush()
+
+
 
 learning_string = "JFJFJFJFJFJFURURURFUFFUJRJRJRJRKKJFKUKKJFRKJFFFJKRUFJRUFFRUFFRUFFRUFFKUUFFJRKFURJFKFFJFJFJFJFKRKRKRKRKRUURURURKFKFKFKKUKUKUKUFUFUFRKRKR"
 
