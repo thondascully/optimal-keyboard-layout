@@ -23,6 +23,10 @@ def clear_screen():
     out.write('\x1b[H\x1b[2J')
     out.flush()
 
+def clear_line():
+  out.write('\r\x1b[2K')
+  out.flush()
+
 learning_string = "JFJFJFJFJFJFURURURFUFFUJRJRJRJRKKJFKUKKJFRKJFFFJKRUFJRUFFRUFFRUFFRUFFKUUFFJRKFURJFKFFJFJFJFJFKRKRKRKRKRUURURURKFKFKFKKUKUKUKUFUFUFRKRKR"
 
 active_keys = []
@@ -115,7 +119,7 @@ def on_press(key):
         print()
 
 listener = keyboard.Listener(on_press=on_press)
-#listener.start()
+listener.start()
 
 while(1):
     pass
