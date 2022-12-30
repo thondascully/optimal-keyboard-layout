@@ -23,8 +23,6 @@ def clear_screen():
     out.write('\x1b[H\x1b[2J')
     out.flush()
 
-
-
 learning_string = "JFJFJFJFJFJFURURURFUFFUJRJRJRJRKKJFKUKKJFRKJFFFJKRUFJRUFFRUFFRUFFRUFFKUUFFJRKFURJFKFFJFJFJFJFKRKRKRKRKRUURURURKFKFKFKKUKUKUKUFUFUFRKRKR"
 
 active_keys = []
@@ -96,7 +94,7 @@ def clear_all() -> None:
 print("\n")
 
 def new(next) -> None:
-    os.system('clear')
+    clear_screen()
     clear_all()
     show(learning_string[next])
     print_keyboard(learning_string[next: next + 5])
