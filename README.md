@@ -274,7 +274,3 @@ the following image represents each neighboring letter (`n` = 1..5), the QWERTY 
 > finally, we can add the neighbor constraint while assigning keys! this is the end result:
 
 https://user-images.githubusercontent.com/114739901/209783290-d3668a84-ae9a-4659-b4aa-996e3de6fb33.mov
-
-## learn.py
-
-https://user-images.githubusercontent.com/114739901/210028060-5bb84d9c-4a73-43fa-b393-87b0bd5b1e8c.mov
