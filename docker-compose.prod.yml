@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  backend:
+    restart: always
+    ports:
+      - "8000:8000"
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --workers 4
+    environment:
+      - ENV=production
+
+  frontend:
+    build:
+      target: prod
+    restart: always
+    ports:
+      - "80:80"
