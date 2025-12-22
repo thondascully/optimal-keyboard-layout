@@ -1,0 +1,77 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  text-align: center;
+  padding: 2rem 1rem 1rem;
+  border-bottom: 2px solid var(--text-sub);
+}
+
+.app-header h1 {
+  font-size: 2.5rem;
+  color: var(--accent-yellow);
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.subtitle {
+  color: var(--text-sub);
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+}
+
+.app-footer {
+  margin-top: auto;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  border-top: 1px solid var(--text-sub);
+}
+
+.app-footer kbd {
+  background-color: var(--bg-darker);
+  border: 1px solid var(--text-sub);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  margin: 0 0.2rem;
+}
+
+.mode-selector {
+  margin-bottom: 2rem;
+}
+
+.mode-selector h2 {
+  margin-bottom: 1rem;
+  color: var(--accent-yellow);
+}
+
+.mode-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.mode-buttons button {
+  flex: 1;
+  min-width: 150px;
+}
+
+.mode-buttons button.active {
+  background-color: var(--accent-yellow);
+  color: var(--bg-dark);
+  border-color: var(--accent-yellow);
+  font-weight: 600;
+}
+
+.mode-description {
+  color: var(--text-sub);
+  font-size: 0.9rem;
+  font-style: italic;
+}

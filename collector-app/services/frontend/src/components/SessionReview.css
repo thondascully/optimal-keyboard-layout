@@ -1,0 +1,87 @@
+.session-review {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .session-review h2 {
+    color: var(--accent-yellow);
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .stat-card {
+    background-color: var(--bg-dark);
+    padding: 1.5rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid var(--text-sub);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-yellow);
+  }
+  
+  .stat-card .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-card .stat-value {
+    font-size: 1.75rem;
+    color: var(--accent-yellow);
+    font-weight: 700;
+  }
+  
+  .warning {
+    background-color: rgba(202, 71, 84, 0.1);
+    border: 1px solid var(--text-error);
+    color: var(--text-error);
+    padding: 1rem;
+    border-radius: 6px;
+    text-align: center;
+    margin-top: 1rem;
+  }
+  
+  .chart-container {
+    background-color: var(--bg-darker);
+  }
+  
+  .actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .actions button.primary {
+    background-color: var(--accent-yellow);
+    color: var(--bg-dark);
+    border-color: var(--accent-yellow);
+    font-weight: 600;
+    font-size: 1.1rem;
+    padding: 1rem 2rem;
+  }
+  
+  .actions button.primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(226, 183, 20, 0.3);
+  }
+  
+  .session-id {
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    font-family: 'Courier New', monospace;
+  }

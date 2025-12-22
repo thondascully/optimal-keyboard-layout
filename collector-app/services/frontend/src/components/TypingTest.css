@@ -1,0 +1,91 @@
+.typing-test {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+  
+  .stats {
+    display: flex;
+    gap: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--text-sub);
+  }
+  
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+    color: var(--accent-yellow);
+    font-weight: 600;
+  }
+  
+  .text-display {
+    font-size: 1.5rem;
+    line-height: 2.5rem;
+    letter-spacing: 0.5px;
+    padding: 2rem;
+    background-color: var(--bg-dark);
+    border-radius: 8px;
+    min-height: 200px;
+    word-wrap: break-word;
+    position: relative;
+  }
+  
+  .char {
+    transition: color 0.1s ease;
+  }
+  
+  .char.pending {
+    color: var(--text-sub);
+  }
+  
+  .char.correct {
+    color: var(--text-main);
+  }
+  
+  .char.current {
+    color: var(--accent-yellow);
+    position: relative;
+  }
+  
+  .char.current::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--accent-yellow);
+    animation: blink 1s infinite;
+  }
+  
+  .instruction {
+    text-align: center;
+    color: var(--text-sub);
+    font-style: italic;
+    padding: 1rem;
+    margin-top: auto;
+  }
+  
+  .loading, .error {
+    text-align: center;
+    padding: 2rem;
+    font-size: 1.2rem;
+    color: var(--text-sub);
+  }
+  
+  .error {
+    color: var(--text-error);
+  }
