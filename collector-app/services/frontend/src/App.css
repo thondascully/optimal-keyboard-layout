@@ -4,6 +4,32 @@
   flex-direction: column;
 }
 
+.app-header-actions {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+.stats-button {
+  padding: 0.75rem 1.5rem;
+  background-color: var(--bg-slate);
+  color: var(--text-main);
+  border: 1px solid var(--text-dim);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.stats-button:hover {
+  background-color: var(--accent);
+  color: var(--bg-dark);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
 .app-header {
   text-align: center;
   padding: 2rem 1rem 1rem;
@@ -12,7 +38,7 @@
 
 .app-header h1 {
   font-size: 2.5rem;
-  color: var(--accent-yellow);
+  color: var(--text-main);
   margin-bottom: 0.5rem;
   font-weight: 700;
 }
@@ -48,7 +74,7 @@
 
 .mode-selector h2 {
   margin-bottom: 1rem;
-  color: var(--accent-yellow);
+  color: var(--text-main);
 }
 
 .mode-buttons {
@@ -64,9 +90,9 @@
 }
 
 .mode-buttons button.active {
-  background-color: var(--accent-yellow);
+  background-color: var(--accent);
   color: var(--bg-dark);
-  border-color: var(--accent-yellow);
+  border-color: var(--accent);
   font-weight: 600;
 }
 
@@ -74,4 +100,15 @@
   color: var(--text-sub);
   font-size: 0.9rem;
   font-style: italic;
+}
+
+.mode-selector-container {
+  margin-bottom: 1rem;
+  padding: 1rem 0.5rem;
+  background-color: var(--bg-slate);
+  border-radius: 8px;
+  border: 1px solid var(--text-dim);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }

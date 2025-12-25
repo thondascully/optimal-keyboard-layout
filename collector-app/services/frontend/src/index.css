@@ -1,11 +1,13 @@
 :root {
-  --bg-dark: #323437;
-  --bg-darker: #2c2e31;
-  --accent-yellow: #e2b714;
-  --text-main: #d1d0c5;
-  --text-sub: #646669;
-  --text-error: #ca4754;
-  --text-correct: #e2b714;
+  --bg-dark: #1e293b;
+  --bg-darker: #0f172a;
+  --bg-slate: #334155;
+  --accent: #94a3b8;
+  --text-main: #e2e8f0;
+  --text-sub: #94a3b8;
+  --text-dim: #64748b;
+  --text-error: #ef4444;
+  --text-correct: #22c55e;
 }
 
 * {
@@ -21,6 +23,7 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
 }
+
 
 #root {
   min-height: 100vh;
@@ -41,8 +44,8 @@ button {
 }
 
 button:hover {
-  border-color: var(--accent-yellow);
-  color: var(--accent-yellow);
+  border-color: var(--accent);
+  color: var(--accent);
   transform: translateY(-2px);
 }
 
@@ -68,21 +71,24 @@ input, select {
 
 input:focus, select:focus {
   outline: none;
-  border-color: var(--accent-yellow);
+  border-color: var(--accent);
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 150px);
 }
 
 .card {
-  background-color: var(--bg-darker);
-  border-radius: 12px;
+  background-color: var(--bg-slate);
+  border-radius: 8px;
   padding: 2rem;
   margin-bottom: 2rem;
-  border: 1px solid var(--text-sub);
+  border: 1px solid var(--text-dim);
 }
 
 /* Animations */

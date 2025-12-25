@@ -1,12 +1,15 @@
 import { useState } from 'react'
 import TypingTest from './components/TypingTest'
 import SessionReview from './components/SessionReview'
+import ModeSelector from './components/ModeSelector'
+import StatsView from './components/StatsView'
 import './App.css'
 
 function App() {
   const [mode, setMode] = useState('top200')
   const [currentSession, setCurrentSession] = useState(null)
   const [showReview, setShowReview] = useState(false)
+  const [showStats, setShowStats] = useState(false)
 
   const handleSessionComplete = (sessionData) => {
     setCurrentSession(sessionData)
@@ -18,52 +21,29 @@ function App() {
     setCurrentSession(null)
   }
 
+  if (showStats) {
+    return <StatsView onClose={() => setShowStats(false)} />
+  }
+
   return (
     <div className="app">
-      <header className="app-header">
-        <h1>FlowCollector</h1>
-        <p className="subtitle">Biomechanical Typing Data Collection</p>
-      </header>
-
+      {!showReview && (
+        <div className="app-header-actions">
+          <button 
+            className="stats-button"
+            onClick={() => setShowStats(true)}
+            title="View Statistics & Database"
+          >
+            📊 Stats
+          </button>
+        </div>
+      )}
       <main className="container">
         {!showReview ? (
           <>
-            <div className="card mode-selector fade-in">
-              <h2>Select Mode</h2>
-              <div className="mode-buttons">
-                <button 
-                  className={mode === 'top200' ? 'active' : ''}
-                  onClick={() => setMode('top200')}
-                >
-                  Top 200 Words
-                </button>
-                <button 
-                  className={mode === 'trigraphs' ? 'active' : ''}
-                  onClick={() => setMode('trigraphs')}
-                >
-                  Trigraphs
-                </button>
-                <button 
-                  className={mode === 'nonsense' ? 'active' : ''}
-                  onClick={() => setMode('nonsense')}
-                >
-                  Nonsense
-                </button>
-                <button 
-                  className={mode === 'calibration' ? 'active' : ''}
-                  onClick={() => setMode('calibration')}
-                >
-                  Calibration
-                </button>
-              </div>
-              <p className="mode-description">
-                {mode === 'top200' && 'Practice the most common English words'}
-                {mode === 'trigraphs' && 'Focus on common three-letter patterns'}
-                {mode === 'nonsense' && 'Pronounceable nonsense to break muscle memory'}
-                {mode === 'calibration' && 'Random sequences for pure biomechanical data'}
-              </p>
+            <div className="mode-selector-container">
+              <ModeSelector mode={mode} onModeChange={setMode} />
             </div>
-
             <TypingTest 
               mode={mode}
               onSessionComplete={handleSessionComplete}
@@ -77,9 +57,11 @@ function App() {
         )}
       </main>
 
-      <footer className="app-footer">
-        <p>Press <kbd>Tab</kbd> to restart • <kbd>Esc</kbd> to cancel</p>
-      </footer>
+      {!showReview && (
+        <footer className="app-footer">
+          <p>Press <kbd>Tab</kbd> to restart • <kbd>Esc</kbd> to cancel</p>
+        </footer>
+      )}
     </div>
   )
 }

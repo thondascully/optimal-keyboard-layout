@@ -1,0 +1,21 @@
+.typing-stats-compact {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  padding: 1rem 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.stat-item {
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.stat-divider {
+  opacity: 0.4;
+  color: var(--text-dim);
+}
+
+
