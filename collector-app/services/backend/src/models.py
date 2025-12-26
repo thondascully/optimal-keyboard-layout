@@ -24,3 +24,6 @@ class FingerAnnotationsUpdate(BaseModel):
     session_id: int
     annotations: List[FingerAnnotation]
 
+class SessionLabelUpdate(BaseModel):
+    label: Optional[str] = None
+

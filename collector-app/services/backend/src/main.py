@@ -1,16 +1,18 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, File, UploadFile, Body
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 import time
 
 from .database import (
     init_db, save_session, get_session, get_all_sessions,
     update_session_fingers, get_stats, delete_session_db,
-    delete_keystroke_db, get_digraph_details
+    delete_keystroke_db, get_digraph_details, get_all_keystrokes_data,
+    update_session_label
 )
 from .generators import generate_text
 from .features import compute_session_features, save_features_to_db
 from .pattern_analysis import analyze_patterns
-from .models import SessionData, FingerAnnotationsUpdate
+from .models import SessionData, FingerAnnotationsUpdate, SessionLabelUpdate
 
 app = FastAPI(title="Collector API", version="1.0.0")
 
@@ -112,6 +114,34 @@ def get_stats_endpoint():
         return get_stats()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+
+@app.get("/keystrokes/data")
+def get_keystrokes_data(limit: int = 1000, offset: int = 0):
+    """
+    Get all keystrokes data with finger, hand, and session information.
+    Useful for data validation and viewing.
+    """
+    try:
+        return get_all_keystrokes_data(limit=limit, offset=offset)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get keystrokes data: {str(e)}")
+
+@app.put("/session/{session_id}/label")
+def update_session_label_endpoint(session_id: int, label_data: SessionLabelUpdate):
+    """
+    Update the label for a session.
+    Body: {"label": "string"} or {"label": null} to remove label
+    """
+    try:
+        label_text = label_data.label if label_data.label else None
+        success = update_session_label(session_id, label_text)
+        if not success:
+            raise HTTPException(status_code=404, detail="Session not found")
+        return {"status": "updated", "session_id": session_id, "label": label_text}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update session label: {str(e)}")
 
 @app.delete("/session/{session_id}")
 def delete_session(session_id: int):

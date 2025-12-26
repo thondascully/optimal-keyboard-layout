@@ -61,6 +61,19 @@ def init_db():
     else:
         print("✅ 'hand' column already exists")
     
+    # Migrate existing sessions table to add label column if it doesn't exist
+    c.execute("PRAGMA table_info(sessions)")
+    session_columns = [row[1] for row in c.fetchall()]
+    
+    if 'label' not in session_columns:
+        try:
+            c.execute("ALTER TABLE sessions ADD COLUMN label TEXT")
+            print("✅ Added 'label' column to sessions table")
+        except sqlite3.OperationalError as e:
+            print(f"⚠️  Could not add 'label' column: {e}")
+    else:
+        print("✅ 'label' column already exists")
+    
     c.execute('''
         CREATE TABLE IF NOT EXISTS keystroke_features (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -155,6 +168,7 @@ def get_session(session_id: int) -> Optional[Dict]:
             "mode": session["mode"],
             "raw_text": session["raw_text"],
             "valid": session["valid"],
+            "label": session["label"] if "label" in session.keys() else None,
             "keystrokes": [
                 {
                     "id": ks["id"],
@@ -247,11 +261,51 @@ def get_stats() -> Dict:
         c.execute("SELECT SUM(LENGTH(raw_text)) FROM sessions")
         total_chars = c.fetchone()[0] or 0
         
+        # Get date range
+        c.execute("SELECT MIN(timestamp), MAX(timestamp) FROM sessions")
+        date_range = c.fetchone()
+        first_session_date = date_range[0] if date_range[0] else None
+        last_session_date = date_range[1] if date_range[1] else None
+        
+        # Get average keystrokes per session
+        avg_keystrokes = round(keystroke_count / session_count, 1) if session_count > 0 else 0
+        avg_chars = round(total_chars / session_count, 1) if session_count > 0 else 0
+        
+        # Get pattern counts - count distinct digraphs (prev_key + key_char combinations)
+        c.execute("""
+            SELECT COUNT(DISTINCT prev_key || key_char) 
+            FROM keystrokes 
+            WHERE prev_key IS NOT NULL AND prev_key != ''
+        """)
+        unique_digraphs_result = c.fetchone()
+        unique_digraphs = unique_digraphs_result[0] if unique_digraphs_result and unique_digraphs_result[0] is not None else 0
+        
+        # Get sessions with features computed
+        # Need to join with keystrokes to get session_id
+        c.execute("""
+            SELECT COUNT(DISTINCT k.session_id) 
+            FROM keystroke_features kf
+            JOIN keystrokes k ON kf.keystroke_id = k.id
+        """)
+        sessions_with_features_result = c.fetchone()
+        sessions_with_features = sessions_with_features_result[0] if sessions_with_features_result and sessions_with_features_result[0] is not None else 0
+        
+        # Get total features
+        c.execute("SELECT COUNT(*) FROM keystroke_features")
+        total_features = c.fetchone()[0] or 0
+        
         return {
             "total_sessions": session_count,
             "total_keystrokes": keystroke_count,
             "total_characters": total_chars,
-            "sessions_by_mode": mode_dist
+            "sessions_by_mode": mode_dist,
+            "avg_keystrokes_per_session": avg_keystrokes,
+            "avg_characters_per_session": avg_chars,
+            "first_session_date": first_session_date,
+            "last_session_date": last_session_date,
+            "unique_digraphs": unique_digraphs,
+            "sessions_with_features": sessions_with_features,
+            "total_features": total_features
         }
     finally:
         conn.close()
@@ -339,6 +393,117 @@ def delete_keystroke_db(keystroke_id: int) -> bool:
                 SET prev_key = NULL 
                 WHERE id = ?
             """, (next_ks['id'],))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        conn.close()
+
+def get_all_keystrokes_data(limit: int = 1000, offset: int = 0) -> Dict:
+    """
+    Get all keystrokes with their finger, hand, and session information.
+    Returns data organized for viewing/validation.
+    """
+    conn = get_connection()
+    c = conn.cursor()
+    
+    try:
+        # Get total count
+        c.execute("SELECT COUNT(*) FROM keystrokes")
+        total_count = c.fetchone()[0]
+        
+        # Get keystrokes with session info
+        c.execute("""
+            SELECT 
+                k.id,
+                k.key_char,
+                k.timestamp,
+                k.prev_key,
+                k.finger,
+                k.hand,
+                k.session_id,
+                s.mode,
+                s.timestamp as session_timestamp
+            FROM keystrokes k
+            JOIN sessions s ON k.session_id = s.id
+            ORDER BY k.id
+            LIMIT ? OFFSET ?
+        """, (limit, offset))
+        
+        keystrokes = []
+        for row in c.fetchall():
+            keystrokes.append({
+                "id": row["id"],
+                "key": row["key_char"],
+                "timestamp": row["timestamp"],
+                "prev_key": row["prev_key"],
+                "finger": row["finger"],
+                "hand": row["hand"],
+                "session_id": row["session_id"],
+                "mode": row["mode"],
+                "session_timestamp": row["session_timestamp"]
+            })
+        
+        # Get statistics by finger
+        c.execute("""
+            SELECT finger, COUNT(*) as count
+            FROM keystrokes
+            WHERE finger IS NOT NULL
+            GROUP BY finger
+            ORDER BY count DESC
+        """)
+        by_finger = {row["finger"]: row["count"] for row in c.fetchall()}
+        
+        # Get statistics by hand
+        c.execute("""
+            SELECT hand, COUNT(*) as count
+            FROM keystrokes
+            WHERE hand IS NOT NULL
+            GROUP BY hand
+            ORDER BY count DESC
+        """)
+        by_hand = {row["hand"]: row["count"] for row in c.fetchall()}
+        
+        # Get statistics by key
+        c.execute("""
+            SELECT key_char, COUNT(*) as count
+            FROM keystrokes
+            GROUP BY key_char
+            ORDER BY count DESC
+        """)
+        by_key = {row["key_char"]: row["count"] for row in c.fetchall()}
+        
+        return {
+            "total_count": total_count,
+            "keystrokes": keystrokes,
+            "statistics": {
+                "by_finger": by_finger,
+                "by_hand": by_hand,
+                "by_key": by_key
+            }
+        }
+    finally:
+        conn.close()
+
+def update_session_label(session_id: int, label: str) -> bool:
+    """
+    Update the label for a session.
+    Returns True if updated, False if not found.
+    """
+    conn = get_connection()
+    c = conn.cursor()
+    
+    try:
+        c.execute(
+            "UPDATE sessions SET label = ? WHERE id = ?",
+            (label if label else None, session_id)
+        )
+        
+        if c.rowcount == 0:
+            return False
         
         conn.commit()
         return True

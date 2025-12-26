@@ -38,6 +38,11 @@ function StatsView({ onClose }) {
   const [cropEnd, setCropEnd] = useState(null)
   const [localKeystrokes, setLocalKeystrokes] = useState(null)
   const [deletionFeedback, setDeletionFeedback] = useState(null)
+  const [keystrokesData, setKeystrokesData] = useState(null)
+  const [dataViewMode, setDataViewMode] = useState('all') // 'all', 'by_finger', 'by_hand', 'by_key'
+  const [dataLoading, setDataLoading] = useState(false)
+  const [editingLabel, setEditingLabel] = useState(null) // session id being edited
+  const [labelInput, setLabelInput] = useState('')
 
   // Get theme-aware colors
   const getChartColors = () => {
@@ -58,6 +63,13 @@ function StatsView({ onClose }) {
   useEffect(() => {
     if (activeTab === 'patterns' && !patterns) {
       // Don't auto-load patterns, wait for recalculate button
+    }
+    if (activeTab === 'overview' && !patterns) {
+      // Load patterns for overview stats
+      fetch('/api/patterns')
+        .then(res => res.json())
+        .then(data => setPatterns(data))
+        .catch(err => console.error('Failed to load patterns:', err))
     }
   }, [activeTab])
 
@@ -82,6 +94,20 @@ function StatsView({ onClose }) {
       if (statsRes.ok) {
         const statsData = await statsRes.json()
         setStats(statsData)
+      } else {
+        console.error('Failed to load stats:', statsRes.status, statsRes.statusText)
+        // Set empty stats object so UI can render
+        setStats({
+          total_sessions: 0,
+          total_keystrokes: 0,
+          total_characters: 0,
+          sessions_by_mode: {},
+          avg_keystrokes_per_session: 0,
+          avg_characters_per_session: 0,
+          unique_digraphs: 0,
+          sessions_with_features: 0,
+          total_features: 0
+        })
       }
       
       if (loadPatterns && patternsRes && patternsRes.ok) {
@@ -90,8 +116,47 @@ function StatsView({ onClose }) {
       }
     } catch (err) {
       console.error('Failed to load data:', err)
+      // Set empty stats object so UI can render even on error
+      setStats({
+        total_sessions: 0,
+        total_keystrokes: 0,
+        total_characters: 0,
+        sessions_by_mode: {},
+        avg_keystrokes_per_session: 0,
+        avg_characters_per_session: 0,
+        unique_digraphs: 0,
+        sessions_with_features: 0,
+        total_features: 0
+      })
     } finally {
       setLoading(false)
+    }
+  }
+
+  // Load patterns for overview
+  useEffect(() => {
+    if (activeTab === 'overview' && !patterns) {
+      fetch('/api/patterns')
+        .then(res => res.json())
+        .then(data => setPatterns(data))
+        .catch(err => console.error('Failed to load patterns:', err))
+    }
+  }, [activeTab])
+
+  const loadKeystrokesData = async () => {
+    setDataLoading(true)
+    try {
+      const response = await fetch('/api/keystrokes/data?limit=5000')
+      if (response.ok) {
+        const data = await response.json()
+        setKeystrokesData(data)
+      } else {
+        console.error('Failed to load keystrokes data:', response.status)
+      }
+    } catch (err) {
+      console.error('Failed to load keystrokes data:', err)
+    } finally {
+      setDataLoading(false)
     }
   }
 
@@ -107,6 +172,38 @@ function StatsView({ onClose }) {
       console.error('Failed to recalculate patterns:', err)
     } finally {
       setCalculatingPatterns(false)
+    }
+  }
+
+  const handleSaveLabel = async (sessionId) => {
+    try {
+      const response = await fetch(`/api/session/${sessionId}/label`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ label: labelInput.trim() || null })
+      })
+      
+      if (response.ok) {
+        // Update the session in the list
+        setSessions(prev => prev.map(s => 
+          s.id === sessionId ? { ...s, label: labelInput.trim() || null } : s
+        ))
+        // Update selected session if it's the one being edited
+        if (selectedSession && selectedSession.id === sessionId) {
+          setSelectedSession(prev => ({ ...prev, label: labelInput.trim() || null }))
+        }
+        setEditingLabel(null)
+        setLabelInput('')
+      } else {
+        const errorData = await response.json().catch(() => ({ detail: 'Unknown error' }))
+        console.error('Failed to update label:', errorData)
+        alert(`Failed to update label: ${errorData.detail || 'Unknown error'}`)
+      }
+    } catch (err) {
+      console.error('Failed to update label:', err)
+      alert('Failed to update label')
     }
   }
 
@@ -201,15 +298,8 @@ function StatsView({ onClose }) {
     }))
   }
 
-  if (loading && activeTab !== 'patterns') {
-    return (
-      <div className="stats-view">
-        <div className="card">
-          <div className="loading">Loading stats...</div>
-        </div>
-      </div>
-    )
-  }
+  // Don't show loading screen for overview if we're just waiting for stats
+  // The overview tab will show its own loading state
 
   return (
     <div className="stats-view fade-in">
@@ -242,38 +332,226 @@ function StatsView({ onClose }) {
         >
           Database
         </button>
+        <button 
+          className={activeTab === 'data' ? 'active' : ''}
+          onClick={() => {
+            setActiveTab('data')
+            if (!keystrokesData) {
+              loadKeystrokesData()
+            }
+          }}
+        >
+          Data Viewer
+        </button>
       </div>
 
-      {activeTab === 'overview' && stats && (
-        <div className="card">
-          <div className="overview-grid">
-            <div className="overview-stat">
-              <div className="stat-value">{stats.total_sessions || 0}</div>
-              <div className="stat-label">Sessions</div>
-            </div>
-            <div className="overview-stat">
-              <div className="stat-value">{(stats.total_keystrokes || 0).toLocaleString()}</div>
-              <div className="stat-label">Keystrokes</div>
-            </div>
-            <div className="overview-stat">
-              <div className="stat-value">{(stats.total_characters || 0).toLocaleString()}</div>
-              <div className="stat-label">Characters</div>
-            </div>
-            {stats.sessions_by_mode && Object.keys(stats.sessions_by_mode).length > 0 && (
-              <div className="overview-modes">
-                <div className="modes-label">Sessions by Mode:</div>
-                <div className="modes-list">
-                  {Object.entries(stats.sessions_by_mode).map(([mode, count]) => (
-                    <div key={mode} className="mode-item">
-                      <span className="mode-name">{mode}</span>
-                      <span className="mode-count">{count}</span>
-                    </div>
-                  ))}
-                </div>
+      {activeTab === 'overview' && (
+        <>
+          {stats && Object.keys(stats).length > 0 ? (
+        <>
+          <div className="card">
+                <div className="overview-stats">
+              <div className="stat-line">
+                <span className="stat-label">Total Sessions:</span>
+                <span className="stat-value">{stats.total_sessions || 0}</span>
               </div>
-            )}
+              <div className="stat-line">
+                <span className="stat-label">Total Keystrokes:</span>
+                <span className="stat-value">{(stats.total_keystrokes || 0).toLocaleString()}</span>
+              </div>
+              <div className="stat-line">
+                <span className="stat-label">Total Characters:</span>
+                <span className="stat-value">{(stats.total_characters || 0).toLocaleString()}</span>
+              </div>
+              <div className="stat-line">
+                <span className="stat-label">Avg Keystrokes/Session:</span>
+                <span className="stat-value">{stats.avg_keystrokes_per_session || 0}</span>
+              </div>
+              <div className="stat-line">
+                <span className="stat-label">Avg Characters/Session:</span>
+                <span className="stat-value">{stats.avg_characters_per_session || 0}</span>
+              </div>
+              <div className="stat-line">
+                <span className="stat-label">Unique Digraphs:</span>
+                <span className="stat-value">{(stats.unique_digraphs || 0).toLocaleString()}</span>
+              </div>
+              <div className="stat-line">
+                <span className="stat-label">Sessions with Features:</span>
+                <span className="stat-value">{stats.sessions_with_features || 0}</span>
+              </div>
+              <div className="stat-line">
+                <span className="stat-label">Total Features:</span>
+                <span className="stat-value">{(stats.total_features || 0).toLocaleString()}</span>
+              </div>
+              {stats.first_session_date && stats.last_session_date && (
+                <div className="stat-line">
+                  <span className="stat-label">Date Range:</span>
+                  <span className="stat-value">
+                    {new Date(stats.first_session_date * 1000).toLocaleDateString()} - {new Date(stats.last_session_date * 1000).toLocaleDateString()}
+                  </span>
+                </div>
+              )}
+              {stats.sessions_by_mode && Object.keys(stats.sessions_by_mode).length > 0 && (
+                <div className="stat-line">
+                  <span className="stat-label">Sessions by Mode:</span>
+                  <span className="stat-value">
+                    {Object.entries(stats.sessions_by_mode).map(([mode, count], idx) => (
+                      <span key={mode}>
+                        {mode} ({count}){idx < Object.keys(stats.sessions_by_mode).length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+            </>
+          ) : loading ? (
+            <div className="card">
+              <div className="loading">Loading statistics...</div>
+            </div>
+          ) : (
+            <div className="card">
+              <div className="error-message">Failed to load statistics. Please try refreshing.</div>
+            </div>
+          )}
+
+          {patterns && (
+            <>
+              {patterns.digraphs && patterns.digraphs.length > 0 && (
+                <div className="card">
+                  <h3>Digraph Statistics</h3>
+                  <div className="pattern-overview">
+                    <div className="pattern-section">
+                      <div className="pattern-subsection">
+                        <div className="subsection-title">Fastest Digraphs (Top 5)</div>
+                        <div className="pattern-list-compact">
+                          {patterns.digraphs.slice(0, 5).map((dg, idx) => (
+                            <div key={idx} className="pattern-item-compact">
+                              <span className="pattern-name">"{dg.pattern}"</span>
+                              <span className="pattern-meta">{dg.avg_time}ms avg ({dg.count}x)</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="pattern-subsection">
+                        <div className="subsection-title">Most Common Digraphs</div>
+                        <div className="pattern-list-compact">
+                          {[...patterns.digraphs].sort((a, b) => b.count - a.count).slice(0, 5).map((dg, idx) => (
+                            <div key={idx} className="pattern-item-compact">
+                              <span className="pattern-name">"{dg.pattern}"</span>
+                              <span className="pattern-meta">{dg.count}x ({dg.avg_time}ms avg)</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    {patterns.digraphs.length > 0 && (
+                      <div style={{ height: '250px', marginTop: '1rem' }}>
+                <Bar
+                  data={{
+                            labels: patterns.digraphs.slice(0, 10).map(d => d.pattern),
+                    datasets: [{
+                              label: 'Average Time (ms)',
+                              data: patterns.digraphs.slice(0, 10).map(d => d.avg_time),
+                              backgroundColor: getChartColors().accent
+                    }]
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                      legend: { display: false },
+                              title: { display: true, text: 'Top 10 Fastest Digraphs', color: getChartColors().text }
+                    },
+                    scales: {
+                              y: { 
+                                ticks: { color: getChartColors().textSub }, 
+                                grid: { color: getChartColors().grid },
+                                title: { display: true, text: 'Time (ms)', color: getChartColors().text }
+                              },
+                              x: { 
+                                ticks: { color: getChartColors().textSub }, 
+                                grid: { color: getChartColors().grid },
+                                title: { display: true, text: 'Digraph', color: getChartColors().text }
+                              }
+                      }
+                    }}
+                  />
+                      </div>
+                )}
+              </div>
+            </div>
+              )}
+
+              {patterns.trigraphs && patterns.trigraphs.length > 0 && (
+                <div className="card">
+                  <h3>Trigraph Statistics</h3>
+                  <div className="pattern-overview">
+                    <div className="pattern-section">
+                      <div className="pattern-subsection">
+                        <div className="subsection-title">Fastest Trigraphs (Top 5)</div>
+                        <div className="pattern-list-compact">
+                          {patterns.trigraphs.slice(0, 5).map((tg, idx) => (
+                            <div key={idx} className="pattern-item-compact">
+                              <span className="pattern-name">"{tg.pattern}"</span>
+                              <span className="pattern-meta">{tg.avg_time}ms avg ({tg.count}x)</span>
+          </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="pattern-subsection">
+                        <div className="subsection-title">Most Common Trigraphs</div>
+                        <div className="pattern-list-compact">
+                          {[...patterns.trigraphs].sort((a, b) => b.count - a.count).slice(0, 5).map((tg, idx) => (
+                            <div key={idx} className="pattern-item-compact">
+                              <span className="pattern-name">"{tg.pattern}"</span>
+                              <span className="pattern-meta">{tg.count}x ({tg.avg_time}ms avg)</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {patterns.fastest_transitions && patterns.fastest_transitions.length > 0 && (
+                <div className="card">
+                  <h3>Transition Statistics</h3>
+                  <div className="pattern-overview">
+                    <div className="pattern-section">
+                      <div className="pattern-subsection">
+                        <div className="subsection-title">Fastest Transitions (Top 5)</div>
+                        <div className="pattern-list-compact">
+                          {patterns.fastest_transitions.slice(0, 5).map((tr, idx) => (
+                            <div key={idx} className="pattern-item-compact">
+                              <span className="pattern-name">{tr.pattern}</span>
+                              <span className="pattern-meta">{tr.avg_time}ms avg ({tr.count}x)</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      {patterns.slowest_transitions && patterns.slowest_transitions.length > 0 && (
+                        <div className="pattern-subsection">
+                          <div className="subsection-title">Slowest Transitions (Top 5)</div>
+                          <div className="pattern-list-compact">
+                            {patterns.slowest_transitions.slice(0, 5).map((tr, idx) => (
+                              <div key={idx} className="pattern-item-compact">
+                                <span className="pattern-name">{tr.pattern}</span>
+                                <span className="pattern-meta">{tr.avg_time}ms avg ({tr.count}x)</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </>
       )}
 
       {activeTab === 'sessions' && (
@@ -281,7 +559,48 @@ function StatsView({ onClose }) {
           {selectedSession ? (
             <div className="card">
               <div className="session-detail-header">
-                <h3>Session #{selectedSession.id} Details</h3>
+                <div className="session-detail-title">
+                  <h3>Session #{selectedSession.id} Details</h3>
+                  {selectedSession.label && (
+                    <span className="session-label">{selectedSession.label}</span>
+                  )}
+                  {editingLabel === selectedSession.id ? (
+                    <div className="label-edit-controls">
+                      <input
+                        type="text"
+                        value={labelInput}
+                        onChange={(e) => setLabelInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleSaveLabel(selectedSession.id)
+                          } else if (e.key === 'Escape') {
+                            setEditingLabel(null)
+                            setLabelInput('')
+                          }
+                        }}
+                        placeholder="Label..."
+                        className="label-input"
+                        autoFocus
+                      />
+                      <button onClick={() => handleSaveLabel(selectedSession.id)} className="label-save-btn">✓</button>
+                      <button onClick={() => {
+                        setEditingLabel(null)
+                        setLabelInput('')
+                      }} className="label-cancel-btn">×</button>
+                    </div>
+                  ) : (
+                    <button
+                      className="edit-label-button"
+                      onClick={() => {
+                        setEditingLabel(selectedSession.id)
+                        setLabelInput(selectedSession.label || '')
+                      }}
+                      title="Edit label"
+                    >
+                      ✎
+                    </button>
+                  )}
+                </div>
                 <button onClick={() => setSelectedSession(null)} className="back-button">← Back</button>
               </div>
               <div className="session-details">
@@ -327,11 +646,11 @@ function StatsView({ onClose }) {
                           const displayKeystrokes = getDisplayKeystrokes()
                           const colors = getChartColors()
                           return (
-                            <Bar
-                              data={{
+                        <Bar
+                          data={{
                                 labels: displayKeystrokes.map((_, i) => i),
-                                datasets: [{
-                                  label: 'Duration (ms)',
+                            datasets: [{
+                              label: 'Duration (ms)',
                               data: displayKeystrokes.map((ks, i) => {
                                 if (i === 0) return 0
                                 const prev = displayKeystrokes[i-1]
@@ -371,31 +690,31 @@ function StatsView({ onClose }) {
                                 }
                                 return 0
                               })
-                                }]
-                              }}
-                              options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                onClick: async (event, elements) => {
-                                  if (elements.length > 0 && editingKeystrokes) {
-                                    const idx = elements[0].index
+                            }]
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            onClick: async (event, elements) => {
+                              if (elements.length > 0 && editingKeystrokes) {
+                                const idx = elements[0].index
                                     const displayKeystrokes = getDisplayKeystrokes()
                                     const ks = displayKeystrokes[idx]
-                                    
-                                    if (!ks || !ks.id) {
-                                      alert('Cannot delete keystroke: no ID available')
-                                      return
-                                    }
-                                    
+                                
+                                if (!ks || !ks.id) {
+                                  alert('Cannot delete keystroke: no ID available')
+                                  return
+                                }
+                                
                                     const keyDisplay = ks.key === ' ' ? 'SPACE' : ks.key
                                     if (confirm(`Delete keystroke "${keyDisplay}"? This will create a breakpoint in the timing data.`)) {
-                                      try {
+                                  try {
                                         // Delete from backend
-                                        const response = await fetch(`/api/keystroke/${ks.id}`, {
-                                          method: 'DELETE'
-                                        })
-                                        
-                                        if (response.ok) {
+                                    const response = await fetch(`/api/keystroke/${ks.id}`, {
+                                      method: 'DELETE'
+                                    })
+                                    
+                                    if (response.ok) {
                                           // Show feedback
                                           setDeletionFeedback({
                                             message: `Deleted keystroke "${keyDisplay}" at index ${idx}. Breakpoint created.`,
@@ -406,34 +725,34 @@ function StatsView({ onClose }) {
                                           setTimeout(() => setDeletionFeedback(null), 3000)
                                           
                                           // Reload session to get updated data from backend (with breakpoint)
-                                          await handleSessionClick(selectedSession.id)
-                                          setSelectedKeystrokeIndex(null)
-                                        } else {
-                                          alert('Failed to delete keystroke')
-                                        }
-                                      } catch (err) {
-                                        console.error('Failed to delete keystroke:', err)
-                                        alert('Failed to delete keystroke')
-                                      }
+                                      await handleSessionClick(selectedSession.id)
+                                      setSelectedKeystrokeIndex(null)
+                                    } else {
+                                      alert('Failed to delete keystroke')
                                     }
-                                  } else if (elements.length > 0) {
-                                    // If not editing, just select for viewing
-                                    setSelectedKeystrokeIndex(elements[0].index)
+                                  } catch (err) {
+                                    console.error('Failed to delete keystroke:', err)
+                                    alert('Failed to delete keystroke')
                                   }
-                                },
-                                plugins: {
-                                  legend: { display: false },
-                                  tooltip: {
-                                    callbacks: {
-                                    label: (context) => {
+                                }
+                              } else if (elements.length > 0) {
+                                // If not editing, just select for viewing
+                                setSelectedKeystrokeIndex(elements[0].index)
+                              }
+                            },
+                            plugins: {
+                              legend: { display: false },
+                              tooltip: {
+                                callbacks: {
+                                  label: (context) => {
                                       const displayKeystrokes = getDisplayKeystrokes()
-                                      const idx = context.dataIndex
+                                    const idx = context.dataIndex
                                       const ks = displayKeystrokes[idx]
                                       
                                       if (context.parsed.y === null) {
-                                        return [
+                                    return [
                                           'BREAKPOINT',
-                                          `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
+                                      `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
                                           'Previous keystroke was deleted'
                                         ]
                                       }
@@ -442,25 +761,25 @@ function StatsView({ onClose }) {
                                         `Duration: ${context.parsed.y?.toFixed(2) || 0}ms`,
                                         `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
                                         idx > 0 ? `From: "${displayKeystrokes[idx-1].key === ' ' ? 'SPACE' : displayKeystrokes[idx-1].key}"` : 'Start'
-                                      ]
-                                    }
-                                    }
+                                    ]
                                   }
-                                },
-                                scales: {
-                                  y: { 
+                                }
+                              }
+                            },
+                            scales: {
+                              y: { 
                                     ticks: { color: colors.textSub }, 
                                     grid: { color: colors.grid },
                                     title: { display: true, text: 'Duration (ms)', color: colors.text }
-                                  },
-                                  x: { 
+                              },
+                              x: { 
                                     ticks: { color: colors.textSub }, 
                                     grid: { color: colors.grid },
                                     title: { display: true, text: 'Keystroke Index', color: colors.text }
-                                  }
-                                }
-                              }}
-                            />
+                              }
+                            }
+                          }}
+                        />
                           )
                         })()}
                       </div>
@@ -504,13 +823,13 @@ function StatsView({ onClose }) {
                       const ks = displayKeystrokes[selectedKeystrokeIndex]
                       if (!ks) return null
                       return (
-                        <div className="keystroke-edit-panel">
-                          <div className="edit-panel-header">
-                            <strong>Editing Keystroke #{selectedKeystrokeIndex}</strong>
-                            <button 
-                              onClick={async () => {
-                                if (!ks.id) return
-                                
+                      <div className="keystroke-edit-panel">
+                        <div className="edit-panel-header">
+                          <strong>Editing Keystroke #{selectedKeystrokeIndex}</strong>
+                          <button 
+                            onClick={async () => {
+                              if (!ks.id) return
+                              
                               const keyDisplay = ks.key === ' ' ? 'SPACE' : ks.key
                               if (confirm(`Delete keystroke "${keyDisplay}"? This will create a breakpoint in the timing data.`)) {
                                 try {
@@ -537,22 +856,22 @@ function StatsView({ onClose }) {
                                   alert('Failed to delete keystroke')
                                 }
                               }
-                              }}
-                              className="delete-keystroke-button"
-                            >
+                            }}
+                            className="delete-keystroke-button"
+                          >
                               Delete
-                            </button>
-                          </div>
-                          <div className="edit-panel-details">
+                          </button>
+                        </div>
+                        <div className="edit-panel-details">
                             <div>Key: "{ks.key === ' ' ? 'SPACE' : ks.key}"</div>
                             {ks.prev_key && (
                               <div>From: "{ks.prev_key === ' ' ? 'SPACE' : ks.prev_key}"</div>
-                            )}
-                            <div>Duration: {selectedKeystrokeIndex > 0 ? 
+                          )}
+                          <div>Duration: {selectedKeystrokeIndex > 0 ? 
                               (displayKeystrokes[selectedKeystrokeIndex].timestamp - displayKeystrokes[selectedKeystrokeIndex - 1].timestamp).toFixed(2) 
-                              : 0}ms</div>
-                          </div>
+                            : 0}ms</div>
                         </div>
+                      </div>
                       )
                     })()}
                     
@@ -561,21 +880,21 @@ function StatsView({ onClose }) {
                         const displayKeystrokes = getDisplayKeystrokes()
                         const hasBreakpoint = ks.prev_key === null || (idx > 0 && ks.prev_key !== displayKeystrokes[idx-1].key)
                         return (
-                          <div 
-                            key={ks.id || idx} 
+                        <div 
+                          key={ks.id || idx} 
                             className={`keystroke-item ${editingKeystrokes && selectedKeystrokeIndex === idx ? 'selected' : ''} ${hasBreakpoint ? 'has-breakpoint' : ''}`}
-                            onClick={() => editingKeystrokes && setSelectedKeystrokeIndex(idx)}
-                          >
-                            <span className="ks-key">"{ks.key === ' ' ? 'SPACE' : ks.key}"</span>
-                            {ks.prev_key && <span className="ks-transition">← "{ks.prev_key === ' ' ? 'SPACE' : ks.prev_key}"</span>}
+                          onClick={() => editingKeystrokes && setSelectedKeystrokeIndex(idx)}
+                        >
+                          <span className="ks-key">"{ks.key === ' ' ? 'SPACE' : ks.key}"</span>
+                          {ks.prev_key && <span className="ks-transition">← "{ks.prev_key === ' ' ? 'SPACE' : ks.prev_key}"</span>}
                             {hasBreakpoint && <span className="ks-break">[BREAKPOINT]</span>}
-                            {ks.finger && <span className="ks-finger">{ks.finger}</span>}
-                            {idx > 0 && (
-                              <span className="ks-duration">
+                          {ks.finger && <span className="ks-finger">{ks.finger}</span>}
+                          {idx > 0 && (
+                            <span className="ks-duration">
                                 {(ks.timestamp - displayKeystrokes[idx-1].timestamp).toFixed(2)}ms
-                              </span>
-                            )}
-                          </div>
+                            </span>
+                          )}
+                        </div>
                         )
                       })}
                     </div>
@@ -597,18 +916,67 @@ function StatsView({ onClose }) {
                       onClick={() => handleSessionClick(session.id)}
                     >
                       <div className="session-info">
-                        <div className="session-id">Session #{session.id}</div>
+                        <div className="session-id-row">
+                          <span className="session-id">Session #{session.id}</span>
+                          {session.label && (
+                            <span className="session-label">{session.label}</span>
+                          )}
+                        </div>
                         <div className="session-mode">{session.mode}</div>
                         <div className="session-date">
                           {new Date(session.timestamp * 1000).toLocaleString()}
                         </div>
-                        <button 
-                          className="delete-session-button"
-                          onClick={(e) => handleDeleteSession(session.id, e)}
-                          title="Delete session"
-                        >
-                          ×
-                        </button>
+                        <div className="session-actions">
+                          {editingLabel === session.id ? (
+                            <div className="label-edit-controls">
+                              <input
+                                type="text"
+                                value={labelInput}
+                                onChange={(e) => setLabelInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleSaveLabel(session.id)
+                                  } else if (e.key === 'Escape') {
+                                    setEditingLabel(null)
+                                    setLabelInput('')
+                                  }
+                                }}
+                                placeholder="Label..."
+                                className="label-input"
+                                autoFocus
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <button onClick={(e) => {
+                                e.stopPropagation()
+                                handleSaveLabel(session.id)
+                              }} className="label-save-btn">✓</button>
+                              <button onClick={(e) => {
+                                e.stopPropagation()
+                                setEditingLabel(null)
+                                setLabelInput('')
+                              }} className="label-cancel-btn">×</button>
+                            </div>
+                          ) : (
+                            <button
+                              className="edit-label-button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setEditingLabel(session.id)
+                                setLabelInput(session.label || '')
+                              }}
+                              title="Edit label"
+                            >
+                              ✎
+                            </button>
+                          )}
+                          <button 
+                            className="delete-session-button"
+                            onClick={(e) => handleDeleteSession(session.id, e)}
+                            title="Delete session"
+                          >
+                            ×
+                          </button>
+                        </div>
                       </div>
                       <div className="session-text-preview">
                         {session.raw_text?.substring(0, 50)}...
@@ -914,6 +1282,183 @@ function StatsView({ onClose }) {
             </div>
           )}
         </>
+      )}
+
+      {activeTab === 'data' && (
+        <div className="data-viewer">
+          <div className="card">
+            <div className="data-viewer-header">
+              <h3>Keystroke Data Viewer</h3>
+              <div className="data-view-controls">
+                <button
+                  className={dataViewMode === 'all' ? 'active' : ''}
+                  onClick={() => setDataViewMode('all')}
+                >
+                  All Data
+                </button>
+                <button
+                  className={dataViewMode === 'by_finger' ? 'active' : ''}
+                  onClick={() => setDataViewMode('by_finger')}
+                >
+                  By Finger
+                </button>
+                <button
+                  className={dataViewMode === 'by_hand' ? 'active' : ''}
+                  onClick={() => setDataViewMode('by_hand')}
+                >
+                  By Hand
+                </button>
+                <button
+                  className={dataViewMode === 'by_key' ? 'active' : ''}
+                  onClick={() => setDataViewMode('by_key')}
+                >
+                  By Key
+                </button>
+                <button onClick={loadKeystrokesData} disabled={dataLoading}>
+                  {dataLoading ? 'Loading...' : 'Refresh'}
+                </button>
+              </div>
+            </div>
+
+            {dataLoading ? (
+              <div className="loading">Loading keystroke data...</div>
+            ) : keystrokesData ? (
+              <>
+                <div className="data-stats-summary">
+                  <div className="summary-item">
+                    <span className="summary-label">Total Keystrokes:</span>
+                    <span className="summary-value">{keystrokesData.total_count.toLocaleString()}</span>
+                  </div>
+                  <div className="summary-item">
+                    <span className="summary-label">Loaded:</span>
+                    <span className="summary-value">{keystrokesData.keystrokes.length.toLocaleString()}</span>
+                  </div>
+                </div>
+
+                {dataViewMode === 'all' && (
+                  <div className="data-table-container">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Key</th>
+                          <th>Finger</th>
+                          <th>Hand</th>
+                          <th>Prev Key</th>
+                          <th>Session ID</th>
+                          <th>Mode</th>
+                          <th>Timestamp</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {keystrokesData.keystrokes.map((ks) => (
+                          <tr key={ks.id}>
+                            <td>{ks.id}</td>
+                            <td className="key-cell">{ks.key === ' ' ? 'SPACE' : ks.key}</td>
+                            <td>{ks.finger || '-'}</td>
+                            <td>{ks.hand || '-'}</td>
+                            <td>{ks.prev_key || '-'}</td>
+                            <td>{ks.session_id}</td>
+                            <td>{ks.mode}</td>
+                            <td>{new Date(ks.timestamp * 1000).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {dataViewMode === 'by_finger' && (
+                  <div className="data-grouped-view">
+                    {Object.entries(keystrokesData.statistics.by_finger).map(([finger, count]) => {
+                      const fingerKeystrokes = keystrokesData.keystrokes.filter(ks => ks.finger === finger)
+                      return (
+                        <div key={finger} className="data-group">
+                          <div className="group-header">
+                            <h4>{finger}</h4>
+                            <span className="group-count">{count} keystrokes</span>
+                          </div>
+                          <div className="group-items">
+                            {fingerKeystrokes.slice(0, 50).map((ks) => (
+                              <div key={ks.id} className="data-item">
+                                <span className="item-key">{ks.key === ' ' ? 'SPACE' : ks.key}</span>
+                                <span className="item-hand">{ks.hand || '-'}</span>
+                                <span className="item-session">Session {ks.session_id}</span>
+                              </div>
+                            ))}
+                            {fingerKeystrokes.length > 50 && (
+                              <div className="item-more">... and {fingerKeystrokes.length - 50} more</div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {dataViewMode === 'by_hand' && (
+                  <div className="data-grouped-view">
+                    {Object.entries(keystrokesData.statistics.by_hand).map(([hand, count]) => {
+                      const handKeystrokes = keystrokesData.keystrokes.filter(ks => ks.hand === hand)
+                      return (
+                        <div key={hand} className="data-group">
+                          <div className="group-header">
+                            <h4>{hand}</h4>
+                            <span className="group-count">{count} keystrokes</span>
+                          </div>
+                          <div className="group-items">
+                            {handKeystrokes.slice(0, 50).map((ks) => (
+                              <div key={ks.id} className="data-item">
+                                <span className="item-key">{ks.key === ' ' ? 'SPACE' : ks.key}</span>
+                                <span className="item-finger">{ks.finger || '-'}</span>
+                                <span className="item-session">Session {ks.session_id}</span>
+                              </div>
+                            ))}
+                            {handKeystrokes.length > 50 && (
+                              <div className="item-more">... and {handKeystrokes.length - 50} more</div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                {dataViewMode === 'by_key' && (
+                  <div className="data-grouped-view">
+                    {Object.entries(keystrokesData.statistics.by_key)
+                      .sort((a, b) => b[1] - a[1])
+                      .map(([key, count]) => {
+                        const keyKeystrokes = keystrokesData.keystrokes.filter(ks => ks.key === key)
+                        return (
+                          <div key={key} className="data-group">
+                            <div className="group-header">
+                              <h4>"{key === ' ' ? 'SPACE' : key}"</h4>
+                              <span className="group-count">{count} keystrokes</span>
+                            </div>
+                            <div className="group-items">
+                              {keyKeystrokes.slice(0, 50).map((ks) => (
+                                <div key={ks.id} className="data-item">
+                                  <span className="item-finger">{ks.finger || '-'}</span>
+                                  <span className="item-hand">{ks.hand || '-'}</span>
+                                  <span className="item-session">Session {ks.session_id}</span>
+                                </div>
+                              ))}
+                              {keyKeystrokes.length > 50 && (
+                                <div className="item-more">... and {keyKeystrokes.length - 50} more</div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="empty-state">No keystroke data available. Click Refresh to load.</div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   )
