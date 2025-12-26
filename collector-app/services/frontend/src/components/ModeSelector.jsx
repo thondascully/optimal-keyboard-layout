@@ -48,8 +48,8 @@ const MODE_INFO = {
 }
 
 function ModeSelector({ mode, onModeChange }) {
-  const [showInfo, setShowInfo] = useState(false)
   const [stats, setStats] = useState(null)
+  const [showInfo, setShowInfo] = useState(false)
 
   useEffect(() => {
     fetch('/api/stats')
@@ -96,18 +96,9 @@ function ModeSelector({ mode, onModeChange }) {
           title={MODE_INFO[m.id].description}
         >
           {m.label}
-          {getModeDataCount(m.id) > 0 && (
-            <span className="mode-count">{getModeDataCount(m.id)}</span>
-          )}
+          <span className="mode-count">{getModeDataCount(m.id)}</span>
         </button>
       ))}
-      <button 
-        className="mode-info-button"
-        onClick={() => setShowInfo(!showInfo)}
-        title="Mode Information"
-      >
-        ℹ️
-      </button>
       {showInfo && (
         <div className="mode-info-panel">
           <div className="mode-info-header">
@@ -116,7 +107,7 @@ function ModeSelector({ mode, onModeChange }) {
           </div>
           {guidance && (
             <div className="data-guidance">
-              <strong>📊 Data Coverage:</strong> {guidance.recommendation}
+              <strong>Data Coverage:</strong> {guidance.recommendation}
             </div>
           )}
           <div className="mode-info-list">

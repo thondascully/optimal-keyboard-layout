@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import TypingTest from './components/TypingTest'
 import SessionReview from './components/SessionReview'
 import ModeSelector from './components/ModeSelector'
@@ -10,6 +10,15 @@ function App() {
   const [currentSession, setCurrentSession] = useState(null)
   const [showReview, setShowReview] = useState(false)
   const [showStats, setShowStats] = useState(false)
+  const [theme, setTheme] = useState(() => {
+    const saved = localStorage.getItem('theme')
+    return saved || 'light'
+  })
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme)
+    localStorage.setItem('theme', theme)
+  }, [theme])
 
   const handleSessionComplete = (sessionData) => {
     setCurrentSession(sessionData)
@@ -30,11 +39,18 @@ function App() {
       {!showReview && (
         <div className="app-header-actions">
           <button 
-            className="stats-button"
+            className="header-button"
             onClick={() => setShowStats(true)}
             title="View Statistics & Database"
           >
-            📊 Stats
+            Stats
+          </button>
+          <button 
+            className="header-button"
+            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            title="Toggle Theme"
+          >
+            {theme === 'light' ? 'Dark' : 'Light'}
           </button>
         </div>
       )}
@@ -42,7 +58,10 @@ function App() {
         {!showReview ? (
           <>
             <div className="mode-selector-container">
-              <ModeSelector mode={mode} onModeChange={setMode} />
+              <ModeSelector 
+                mode={mode} 
+                onModeChange={setMode}
+              />
             </div>
             <TypingTest 
               mode={mode}
@@ -50,10 +69,17 @@ function App() {
             />
           </>
         ) : (
-          <SessionReview 
-            sessionData={currentSession}
-            onStartNew={handleStartNew}
-          />
+          currentSession ? (
+            <SessionReview 
+              sessionData={currentSession}
+              onStartNew={handleStartNew}
+            />
+          ) : (
+            <div className="card">
+              <p>No session data available</p>
+              <button onClick={handleStartNew}>Start New Session</button>
+            </div>
+          )
         )}
       </main>
 

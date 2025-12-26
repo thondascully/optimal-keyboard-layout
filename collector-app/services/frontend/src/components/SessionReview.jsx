@@ -8,8 +8,21 @@ import {
   Title,
   Tooltip,
   Legend,
+  Filler,
 } from 'chart.js'
 import { Line } from 'react-chartjs-2'
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+)
 import { getDefaultFinger, getDefaultHand } from '../utils/fingerMapping'
 import { AMBIGUOUS_KEYS, FINGER_OPTIONS } from '../utils/constants'
 import './SessionReview.css'
@@ -27,16 +40,35 @@ ChartJS.register(
 function SessionReview({ sessionData, onStartNew }) {
   const [fingerAnnotations, setFingerAnnotations] = useState({})
   const [annotationStatus, setAnnotationStatus] = useState(null)
-  const [editingKeystrokes, setEditingKeystrokes] = useState(false)
-  const [selectedKeystrokeIndex, setSelectedKeystrokeIndex] = useState(null)
   const [cropStart, setCropStart] = useState(0)
   const [cropEnd, setCropEnd] = useState(null)
   const [localKeystrokes, setLocalKeystrokes] = useState(null)
+  const [error, setError] = useState(null)
+
+  // Show error if one occurred
+  if (error) {
+    return (
+      <div className="session-review fade-in">
+        <div className="card">
+          <h2>Error</h2>
+          <p>{error}</p>
+          <button onClick={onStartNew}>Start New Session</button>
+        </div>
+      </div>
+    )
+  }
 
   // Initialize local keystrokes and crop settings
   useEffect(() => {
+    console.log('SessionReview useEffect: Running', { 
+      hasSessionData: !!sessionData,
+      hasKeystrokes: !!sessionData?.keystrokes,
+      keystrokesLength: sessionData?.keystrokes?.length 
+    })
+    
     if (!sessionData) {
       console.warn('SessionReview: No sessionData provided')
+      setLocalKeystrokes([]) // Set empty to prevent infinite loading
       return
     }
     
@@ -77,24 +109,35 @@ function SessionReview({ sessionData, onStartNew }) {
               setLocalKeystrokes(updated)
               setCropEnd(updated.length - 1)
             } else {
-              console.warn('Fetched session has no keystrokes')
+              console.warn('Fetched session has no keystrokes, using original')
               setLocalKeystrokes(keystrokesWithIds)
               setCropEnd(keystrokesWithIds.length - 1)
             }
           })
           .catch(err => {
             console.error('Failed to fetch session for IDs:', err)
+            // Still set keystrokes even if fetch failed
             setLocalKeystrokes(keystrokesWithIds)
             setCropEnd(keystrokesWithIds.length - 1)
           })
       } else {
+        // All keystrokes have IDs, set them directly
+        console.log('All keystrokes have IDs, setting directly')
         setLocalKeystrokes(keystrokesWithIds)
         setCropEnd(keystrokesWithIds.length - 1)
       }
+    } else if (sessionData.keystrokes && sessionData.keystrokes.length === 0) {
+      // Empty keystrokes array - set it anyway
+      console.log('Empty keystrokes array')
+      setLocalKeystrokes([])
+      setCropEnd(null)
     } else {
-      console.warn('SessionReview: No keystrokes in sessionData')
+      console.warn('SessionReview: No keystrokes in sessionData, setting empty array')
+      // Still set empty array to prevent infinite loading
+      setLocalKeystrokes([])
+      setCropEnd(null)
     }
-  }, [sessionData?.session_id, sessionData?.id]) // Re-initialize when session ID changes
+  }, [sessionData]) // Re-initialize when sessionData changes
 
   // Get cropped keystrokes
   const displayKeystrokes = useMemo(() => {
@@ -209,7 +252,15 @@ function SessionReview({ sessionData, onStartNew }) {
     const labels = displayKeystrokes.map((_, i) => i)
     const durations = displayKeystrokes.map((k, i) => {
       if (i === 0 || !k || !displayKeystrokes[i - 1]) return 0
-      const duration = k.timestamp - displayKeystrokes[i - 1].timestamp
+      
+      const prev = displayKeystrokes[i - 1]
+      // Check for discontinuity (prev_key doesn't match previous keystroke's key)
+      // This indicates a deleted keystroke created a gap - "burn the ends"
+      if (k.prev_key !== prev.key) {
+        return null // Create gap in chart
+      }
+      
+      const duration = k.timestamp - prev.timestamp
       return isNaN(duration) ? 0 : duration
     })
 
@@ -219,11 +270,29 @@ function SessionReview({ sessionData, onStartNew }) {
         {
           label: 'Inter-Key Latency (ms)',
           data: durations,
-          borderColor: '#94a3b8',
-          backgroundColor: 'rgba(148, 163, 184, 0.1)',
+          borderColor: (ctx) => {
+            // Use different styling for gaps
+            if (!ctx.parsed || ctx.parsed.y === null || ctx.parsed.y === undefined) {
+              return 'rgba(200, 200, 200, 0.5)'
+            }
+            return '#4A90E2'
+          },
+          backgroundColor: (ctx) => {
+            if (!ctx.parsed || ctx.parsed.y === null || ctx.parsed.y === undefined) {
+              return 'rgba(200, 200, 200, 0.2)'
+            }
+            return 'rgba(74, 144, 226, 0.1)'
+          },
           tension: 0.1,
-          pointRadius: 2,
+          fill: false, // Disable fill to avoid Filler plugin requirement
+          pointRadius: (ctx) => {
+            if (!ctx.parsed || ctx.parsed.y === null || ctx.parsed.y === undefined) {
+              return 0
+            }
+            return 2
+          },
           pointHoverRadius: 5,
+          spanGaps: false, // Don't connect across gaps
         },
       ],
     }
@@ -245,8 +314,8 @@ function SessionReview({ sessionData, onStartNew }) {
         {
           label: 'Raw WPM',
           data: wpmValues,
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139, 92, 246, 0.1)',
+          borderColor: '#4A90E2',
+          backgroundColor: 'rgba(74, 144, 226, 0.1)',
           tension: 0.4,
           pointRadius: 3,
           pointHoverRadius: 6,
@@ -255,7 +324,7 @@ function SessionReview({ sessionData, onStartNew }) {
         {
           label: 'Average WPM',
           data: avgWPMLine,
-          borderColor: '#14b8a6',
+          borderColor: '#6B8E23',
           backgroundColor: 'transparent',
           borderDash: [5, 5],
           tension: 0,
@@ -434,6 +503,18 @@ function SessionReview({ sessionData, onStartNew }) {
     return { annotated, total, percent: total > 0 ? Math.round((annotated / total) * 100) : 0 }
   }, [fingerAnnotations, displayKeystrokes])
 
+  // Get theme-aware colors
+  const getChartColors = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    return {
+      text: isDark ? '#e0e0e0' : '#000000',
+      textSub: isDark ? '#b0b0b0' : '#333333',
+      grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      accent: isDark ? '#5ba3f5' : '#4A90E2',
+      error: isDark ? '#ff4444' : '#C00000'
+    }
+  }
+
   const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -441,13 +522,13 @@ function SessionReview({ sessionData, onStartNew }) {
       legend: {
         display: true,
         labels: {
-          color: '#e2e8f0'
+          color: getChartColors().text
         }
       },
       title: {
         display: true,
         text: 'Keystroke Timing Analysis',
-        color: '#e2e8f0',
+        color: getChartColors().text,
         font: {
           size: 16
         }
@@ -455,51 +536,50 @@ function SessionReview({ sessionData, onStartNew }) {
       tooltip: {
         callbacks: {
           label: function(context) {
-            const ks = displayKeystrokes[context.dataIndex]
-            if (!ks) return []
-            return [
-              `Duration: ${context.parsed.y.toFixed(2)}ms`,
-              `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
-              `Previous: "${ks.prev_key === ' ' ? 'SPACE' : (ks.prev_key || 'START')}"`
-            ]
+            try {
+              if (context.parsed.y === null) {
+                return ['Gap (deleted keystroke)']
+              }
+              const ks = displayKeystrokes?.[context.dataIndex]
+              if (!ks) return [`Duration: ${context.parsed.y?.toFixed(2) || 0}ms`]
+              return [
+                `Duration: ${context.parsed.y?.toFixed(2) || 0}ms`,
+                `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
+                `Previous: "${ks.prev_key === ' ' ? 'SPACE' : (ks.prev_key || 'START')}"`
+              ]
+            } catch (err) {
+              console.error('Error in tooltip callback:', err)
+              return ['Error loading data']
+            }
           }
         }
       },
-      onClick: (event, elements) => {
-        if (editingKeystrokes && elements.length > 0 && displayKeystrokes) {
-          const chartIndex = elements[0].index
-          // Chart index corresponds to displayKeystrokes index
-          if (chartIndex >= 0 && chartIndex < displayKeystrokes.length) {
-            handleDeleteKeystroke(chartIndex)
-          }
-        }
-      }
     },
     scales: {
       x: {
         title: {
           display: true,
           text: 'Keystroke Index',
-          color: '#e2e8f0'
+          color: getChartColors().text
         },
         ticks: {
-          color: '#94a3b8'
+          color: getChartColors().textSub
         },
         grid: {
-          color: 'rgba(148, 163, 184, 0.2)'
+          color: getChartColors().grid
         }
       },
       y: {
         title: {
           display: true,
           text: 'Duration (ms)',
-          color: '#e2e8f0'
+          color: getChartColors().text
         },
         ticks: {
-          color: '#94a3b8'
+          color: getChartColors().textSub
         },
         grid: {
-          color: 'rgba(148, 163, 184, 0.2)'
+          color: getChartColors().grid
         }
       }
     }
@@ -516,13 +596,13 @@ function SessionReview({ sessionData, onStartNew }) {
       legend: {
         display: true,
         labels: {
-          color: '#e2e8f0'
+          color: getChartColors().text
         }
       },
       title: {
         display: true,
         text: 'Words per Minute',
-        color: '#e2e8f0',
+        color: getChartColors().text,
         font: {
           size: 16
         }
@@ -540,13 +620,13 @@ function SessionReview({ sessionData, onStartNew }) {
         title: {
           display: true,
           text: 'Chunk',
-          color: '#e2e8f0'
+          color: getChartColors().text
         },
         ticks: {
-          color: '#94a3b8'
+          color: getChartColors().textSub
         },
         grid: {
-          color: 'rgba(148, 163, 184, 0.2)'
+          color: getChartColors().grid
         }
       },
       y: {
@@ -556,23 +636,97 @@ function SessionReview({ sessionData, onStartNew }) {
         title: {
           display: true,
           text: 'Words per Minute',
-          color: '#e2e8f0'
+          color: getChartColors().text
         },
         ticks: {
-          color: '#94a3b8'
+          color: getChartColors().textSub
         },
         grid: {
-          color: 'rgba(148, 163, 184, 0.2)'
+          color: getChartColors().grid
         }
       },
     }
   }
 
-  if (!sessionData || !stats) {
+  // Show loading state while initializing
+  if (!sessionData) {
+    console.log('SessionReview: No sessionData')
     return (
-      <div className="card">
-        <p>No session data available</p>
-        <button onClick={onStartNew}>Start New Session</button>
+      <div className="session-review fade-in">
+        <div className="card">
+          <p>No session data available</p>
+          <button onClick={onStartNew}>Start New Session</button>
+        </div>
+      </div>
+    )
+  }
+
+  console.log('SessionReview: sessionData exists', { 
+    hasKeystrokes: !!sessionData.keystrokes, 
+    keystrokesLength: sessionData.keystrokes?.length,
+    localKeystrokes: localKeystrokes?.length,
+    hasStats: !!stats
+  })
+
+  // Show loading state while keystrokes are being initialized
+  if (localKeystrokes === null && sessionData.keystrokes && sessionData.keystrokes.length > 0) {
+    console.log('SessionReview: Loading keystrokes...')
+    return (
+      <div className="session-review fade-in">
+        <div className="card">
+          <p>Loading session data...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // If we have no keystrokes at all, show error
+  if (!localKeystrokes || localKeystrokes.length === 0) {
+    console.log('SessionReview: No localKeystrokes')
+    return (
+      <div className="session-review fade-in">
+        <div className="card">
+          <h2>Session Complete!</h2>
+          <p>No keystroke data available for this session.</p>
+          <button onClick={onStartNew}>Start New Session</button>
+        </div>
+      </div>
+    )
+  }
+
+  // If stats is null but we have keystrokes, still render the UI with basic info
+  if (!stats) {
+    console.log('SessionReview: No stats, but have keystrokes', localKeystrokes.length)
+    return (
+      <div className="session-review fade-in">
+        <div className="card">
+          <h2>Session Complete!</h2>
+          <p>Unable to calculate statistics. Keystroke data may be incomplete.</p>
+          <p>Keystrokes: {localKeystrokes.length}</p>
+          <button onClick={onStartNew}>Start New Session</button>
+        </div>
+      </div>
+    )
+  }
+
+  console.log('SessionReview: Rendering full UI', { 
+    stats: !!stats, 
+    chartData: !!chartData,
+    displayKeystrokes: displayKeystrokes?.length,
+    localKeystrokes: localKeystrokes?.length
+  })
+
+  // Safety check - if we somehow get here without stats, render a fallback
+  if (!stats) {
+    console.error('SessionReview: Stats is null but passed all checks!')
+    return (
+      <div className="session-review fade-in">
+        <div className="card">
+          <h2>Session Complete!</h2>
+          <p>Error: Unable to calculate statistics.</p>
+          <p>Keystrokes: {localKeystrokes?.length || 0}</p>
+          <button onClick={onStartNew}>Start New Session</button>
+        </div>
       </div>
     )
   }
@@ -604,83 +758,6 @@ function SessionReview({ sessionData, onStartNew }) {
     const keyPosition = keystrokeIndex - wordStart
     
     return { word, keyPosition, key: currentKey }
-  }
-
-  const handleDeleteKeystroke = async (displayIndex) => {
-    if (!displayKeystrokes || !localKeystrokes || displayIndex < 0 || displayIndex >= displayKeystrokes.length) {
-      console.warn('Invalid delete index:', displayIndex)
-      return
-    }
-    
-    const keystroke = displayKeystrokes[displayIndex]
-    
-    if (!keystroke) {
-      console.warn('No keystroke found at index:', displayIndex)
-      return
-    }
-    
-    // Delete from backend if it has an ID
-    if (keystroke.id) {
-      try {
-        const response = await fetch(`/api/keystroke/${keystroke.id}`, {
-          method: 'DELETE'
-        })
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({ detail: 'Failed to delete keystroke' }))
-          throw new Error(errorData.detail || 'Failed to delete keystroke')
-        }
-      } catch (err) {
-        console.error('Failed to delete keystroke:', err)
-        alert(`Failed to delete keystroke: ${err.message}`)
-        return
-      }
-    } else {
-      // If no ID, we can't delete from backend, but we can remove from local state
-      console.warn('Keystroke has no ID, only removing from local state')
-    }
-    
-    // Find the keystroke in localKeystrokes by ID or index
-    let globalIndex = -1
-    if (keystroke.id) {
-      globalIndex = localKeystrokes.findIndex(ks => ks.id === keystroke.id)
-    }
-    
-    // If ID matching failed, use index-based matching
-    if (globalIndex < 0) {
-      // Calculate global index from display index
-      globalIndex = cropStart + displayIndex
-    }
-    
-    if (globalIndex < 0 || globalIndex >= localKeystrokes.length) {
-      console.error('Could not find keystroke to delete. Global index:', globalIndex, 'Local keystrokes length:', localKeystrokes.length)
-      return
-    }
-    
-    // Remove from local state - this creates a "hole" in the graph
-    const newKeystrokes = [...localKeystrokes]
-    newKeystrokes.splice(globalIndex, 1)
-    setLocalKeystrokes(newKeystrokes)
-    
-    // Update crop end if needed
-    if (cropEnd !== null && globalIndex <= cropEnd) {
-      setCropEnd(Math.max(0, cropEnd - 1))
-    }
-    
-    // Remove from finger annotations if it was annotated
-    if (keystroke.id) {
-      setFingerAnnotations(prev => {
-        const updated = { ...prev }
-        delete updated[keystroke.id.toString()]
-        delete updated[keystroke.id]
-        return updated
-      })
-    }
-    
-    setSelectedKeystrokeIndex(null)
-    
-    // Force chart re-render by updating a dependency
-    // The chart will automatically update because displayKeystrokes depends on localKeystrokes
-    console.log('Keystroke deleted, chart should update')
   }
 
   const handleApplyCrop = () => {
@@ -721,20 +798,15 @@ function SessionReview({ sessionData, onStartNew }) {
       <div className="card chart-container">
         <div className="chart-header">
           <h3>Keystroke Timing Analysis</h3>
-          <div className="chart-controls">
-            <button 
-              onClick={() => setEditingKeystrokes(!editingKeystrokes)}
-              className={editingKeystrokes ? 'active' : ''}
-            >
-              {editingKeystrokes ? 'Done Editing' : 'Edit Keystrokes'}
-            </button>
-            {editingKeystrokes && (
-              <span className="edit-hint">Click any point to delete it</span>
-            )}
-          </div>
         </div>
         <div style={{ height: '400px' }}>
-          <Line data={chartData} options={chartOptions} />
+          {chartData ? (
+            <Line data={chartData} options={chartOptions} />
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#666666' }}>
+              No chart data available
+            </div>
+          )}
         </div>
         
         {/* Crop controls */}

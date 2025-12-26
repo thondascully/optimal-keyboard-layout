@@ -9,11 +9,11 @@ function TypingTest({ mode, onSessionComplete }) {
   const [isActive, setIsActive] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
-  const [cursorLeft, setCursorLeft] = useState(0)
-  const [cursorTop, setCursorTop] = useState(0)
+  const [cursorPosition, setCursorPosition] = useState({ left: 0, top: 0, width: 0, height: 0 })
   const startTimeRef = useRef(null)
   const textDisplayRef = useRef(null)
   const charRefs = useRef([])
+  const cursorRef = useRef(null)
 
   // Load text when mode changes
   useEffect(() => {
@@ -230,44 +230,56 @@ function TypingTest({ mode, onSessionComplete }) {
 
   // Update cursor position smoothly
   useEffect(() => {
-    if (!textDisplayRef.current || !text) return
+    if (!textDisplayRef.current || !text || currentIndex >= text.length) return
     
-    const updateCursorPosition = () => {
+    const updateCursor = () => {
       const container = textDisplayRef.current
       if (!container) return
       
-      const containerRect = container.getBoundingClientRect()
-      
       if (currentIndex === 0) {
-        // Position at the start
-        setCursorLeft(32) // 2rem padding = 32px
-        setCursorTop(34) // 2rem padding + 2px for alignment
+        // Position at start - find first character
+        const firstChar = charRefs.current[0]
+        if (firstChar) {
+          const charRect = firstChar.getBoundingClientRect()
+          const containerRect = container.getBoundingClientRect()
+          setCursorPosition({
+            left: charRect.left - containerRect.left,
+            top: charRect.top - containerRect.top,
+            width: charRect.width || 8,
+            height: charRect.height
+          })
+        }
       } else if (currentIndex < text.length) {
         // Position at current character
         const targetChar = charRefs.current[currentIndex]
         if (targetChar) {
           const charRect = targetChar.getBoundingClientRect()
           const containerRect = container.getBoundingClientRect()
-          setCursorLeft(charRect.left - containerRect.left)
-          // Align cursor with text baseline - adjust for proper alignment
-          setCursorTop(charRect.top - containerRect.top + 2)
+          setCursorPosition({
+            left: charRect.left - containerRect.left,
+            top: charRect.top - containerRect.top,
+            width: charRect.width || 8,
+            height: charRect.height
+          })
         }
       } else {
-        // Position at the end (after last character)
+        // Position after last character
         const lastChar = charRefs.current[text.length - 1]
         if (lastChar) {
           const charRect = lastChar.getBoundingClientRect()
           const containerRect = container.getBoundingClientRect()
-          setCursorLeft(charRect.right - containerRect.left)
-          setCursorTop(charRect.top - containerRect.top + 2)
+          setCursorPosition({
+            left: charRect.right - containerRect.left,
+            top: charRect.top - containerRect.top,
+            width: 2,
+            height: charRect.height
+          })
         }
       }
     }
 
     // Use requestAnimationFrame for smooth updates
-    const rafId = requestAnimationFrame(() => {
-      updateCursorPosition()
-    })
+    const rafId = requestAnimationFrame(updateCursor)
     return () => cancelAnimationFrame(rafId)
   }, [currentIndex, text])
 
@@ -356,19 +368,19 @@ function TypingTest({ mode, onSessionComplete }) {
 
       <div className="text-display" ref={textDisplayRef}>
         {text && renderText()}
-        {text && (
+        {text && currentIndex < text.length && (
           <span 
-            className="typing-cursor"
-            style={{ left: `${cursorLeft}px`, top: `${cursorTop}px` }}
+            ref={cursorRef}
+            className="typing-cursor-smooth"
+            style={{ 
+              left: `${cursorPosition.left}px`, 
+              top: `${cursorPosition.top}px`,
+              width: `${cursorPosition.width}px`,
+              height: `${cursorPosition.height}px`
+            }}
           />
         )}
       </div>
-
-      {!isActive && currentIndex === 0 && (
-        <div className="instruction">
-          Start typing to begin...
-        </div>
-      )}
     </div>
   )
 }

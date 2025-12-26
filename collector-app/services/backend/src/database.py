@@ -294,12 +294,34 @@ def delete_session_db(session_id: int) -> bool:
 def delete_keystroke_db(keystroke_id: int) -> bool:
     """
     Delete a keystroke and cascade delete to features.
+    Sets the prev_key of the next keystroke to NULL to create a breakpoint.
     Returns True if deleted, False if not found.
     """
     conn = get_connection()
     c = conn.cursor()
     
     try:
+        # First, get the keystroke we're about to delete to find its prev_key and session
+        c.execute("SELECT prev_key, session_id, timestamp FROM keystrokes WHERE id = ?", (keystroke_id,))
+        deleted_ks = c.fetchone()
+        
+        if not deleted_ks:
+            return False
+        
+        deleted_prev_key = deleted_ks['prev_key']
+        session_id = deleted_ks['session_id']
+        deleted_timestamp = deleted_ks['timestamp']
+        
+        # Find the next keystroke in the same session (by timestamp order)
+        # This is the keystroke that currently has prev_key pointing to the deleted keystroke
+        c.execute("""
+            SELECT id FROM keystrokes 
+            WHERE session_id = ? AND timestamp > ? 
+            ORDER BY timestamp ASC 
+            LIMIT 1
+        """, (session_id, deleted_timestamp))
+        next_ks = c.fetchone()
+        
         # Delete features first (cascade)
         c.execute("DELETE FROM keystroke_features WHERE keystroke_id = ?", (keystroke_id,))
         
@@ -308,6 +330,15 @@ def delete_keystroke_db(keystroke_id: int) -> bool:
         
         if c.rowcount == 0:
             return False
+        
+        # Update the next keystroke's prev_key to NULL to create a breakpoint
+        # This prevents connecting the keystrokes before and after the deleted one
+        if next_ks:
+            c.execute("""
+                UPDATE keystrokes 
+                SET prev_key = NULL 
+                WHERE id = ?
+            """, (next_ks['id'],))
         
         conn.commit()
         return True
@@ -375,16 +406,65 @@ def get_digraph_details(pattern: str) -> Dict:
             min_time = min(times)
             max_time = max(times)
             bin_count = 10
-            bin_size = (max_time - min_time) / bin_count if max_time > min_time else 1
             
-            bins = [0] * bin_count
-            labels = []
-            for i in range(bin_count):
-                labels.append(f"{min_time + i * bin_size:.0f}-{min_time + (i+1) * bin_size:.0f}ms")
-            
-            for time_val in times:
-                bin_idx = min(int((time_val - min_time) / bin_size), bin_count - 1)
-                bins[bin_idx] += 1
+            # Determine appropriate bin size and precision
+            # For very small values (< 1ms), use 0.01ms buckets
+            # For larger values, use appropriate precision
+            if max_time < 1.0:
+                # Use 0.01ms buckets for sub-millisecond values
+                bin_size = 0.01
+                # Calculate how many bins we need
+                range_size = max_time - min_time
+                if range_size == 0:
+                    range_size = max_time if max_time > 0 else 0.1
+                actual_bin_count = min(int(range_size / bin_size) + 1, 20)  # Cap at 20 bins
+                if actual_bin_count < 5:
+                    actual_bin_count = 5  # Minimum 5 bins
+                
+                bins = [0] * actual_bin_count
+                labels = []
+                
+                for i in range(actual_bin_count):
+                    bin_start = min_time + i * bin_size
+                    bin_end = min_time + (i + 1) * bin_size
+                    labels.append(f"{bin_start:.2f}-{bin_end:.2f}ms")
+                
+                for time_val in times:
+                    bin_idx = min(int((time_val - min_time) / bin_size), actual_bin_count - 1) if bin_size > 0 else 0
+                    bins[bin_idx] += 1
+            elif max_time == min_time:
+                # Handle edge case where all times are the same
+                bin_size = max_time / bin_count if max_time > 0 else 1
+                bins = [0] * bin_count
+                # Put all values in the first bin
+                bins[0] = len(times)
+                labels = []
+                for i in range(bin_count):
+                    bin_start = i * bin_size
+                    bin_end = (i + 1) * bin_size
+                    if bin_size < 1:
+                        labels.append(f"{bin_start:.2f}-{bin_end:.2f}ms")
+                    else:
+                        labels.append(f"{bin_start:.1f}-{bin_end:.1f}ms")
+            else:
+                bin_size = (max_time - min_time) / bin_count
+                bins = [0] * bin_count
+                labels = []
+                
+                for i in range(bin_count):
+                    bin_start = min_time + i * bin_size
+                    bin_end = min_time + (i + 1) * bin_size
+                    # Use 2 decimal places for small values (< 1ms), 1 for medium, 0 for large
+                    if bin_size < 0.1:
+                        labels.append(f"{bin_start:.2f}-{bin_end:.2f}ms")
+                    elif bin_size < 1:
+                        labels.append(f"{bin_start:.1f}-{bin_end:.1f}ms")
+                    else:
+                        labels.append(f"{bin_start:.0f}-{bin_end:.0f}ms")
+                
+                for time_val in times:
+                    bin_idx = min(int((time_val - min_time) / bin_size), bin_count - 1) if bin_size > 0 else 0
+                    bins[bin_idx] += 1
             
             distribution = {
                 "labels": labels,

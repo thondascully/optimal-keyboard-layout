@@ -1,20 +1,24 @@
-.typing-test {
+  .typing-test {
     display: flex;
     flex-direction: column;
     gap: 0;
     flex-shrink: 0;
+    background-color: var(--bg-lighter);
+    border: 1px solid var(--border-light);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
   
   
   .text-display {
+    font-family: 'Roboto Mono', 'Courier New', monospace;
     font-size: 1.5rem;
     line-height: 2.5rem;
     letter-spacing: 0.5px;
-    padding: 2rem;
-    background: transparent;
-    border: none;
+    padding: 1.5rem;
+    background: var(--bg-lighter);
+    border: 1px solid var(--border-light);
     min-height: 300px;
-    max-height: calc(100vh - 400px);
+    max-height: calc(100vh - 350px);
     overflow-y: auto;
     word-wrap: break-word;
     word-break: normal;
@@ -24,6 +28,7 @@
     font-weight: 400;
     color: var(--text-main);
     white-space: pre-wrap;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
   }
   
   .word-wrapper {
@@ -43,35 +48,37 @@
   }
   
   .char.correct {
-    color: #ffffff;
+    color: var(--text-main);
   }
   
   .char.current {
-    color: #a5b4fc;
-    background-color: rgba(165, 180, 252, 0.15);
-    border-radius: 2px;
+    color: var(--text-main);
+    background-color: transparent;
   }
   
-  .typing-cursor {
+  .typing-cursor-smooth {
     position: absolute;
-    height: 1.5rem;
-    width: 2px;
-    background-color: var(--text-main);
-    transition: left 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), top 0.2s ease, opacity 0.15s ease;
+    background-color: var(--accent);
+    opacity: 0.4;
     pointer-events: none;
-    animation: cursorPulse 1.2s ease-in-out infinite;
     z-index: 10;
-    transform: translateY(0);
+    transition: left 0.1s cubic-bezier(0.4, 0, 0.2, 1), 
+                top 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.1s cubic-bezier(0.4, 0, 0.2, 1),
+                height 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 1px;
+    animation: cursorPulse 1.2s ease-in-out infinite;
   }
   
   @keyframes cursorPulse {
     0%, 100% {
-      opacity: 1;
-    }
-    50% {
       opacity: 0.4;
     }
+    50% {
+      opacity: 0.7;
+    }
   }
+  
   
   .instruction {
     text-align: center;

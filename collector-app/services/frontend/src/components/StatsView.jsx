@@ -34,6 +34,22 @@ function StatsView({ onClose }) {
   const [editingKeystrokes, setEditingKeystrokes] = useState(false)
   const [selectedKeystrokeIndex, setSelectedKeystrokeIndex] = useState(null)
   const [showDigraphModal, setShowDigraphModal] = useState(false)
+  const [cropStart, setCropStart] = useState(0)
+  const [cropEnd, setCropEnd] = useState(null)
+  const [localKeystrokes, setLocalKeystrokes] = useState(null)
+  const [deletionFeedback, setDeletionFeedback] = useState(null)
+
+  // Get theme-aware colors
+  const getChartColors = () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark'
+    return {
+      text: isDark ? '#e0e0e0' : '#000000',
+      textSub: isDark ? '#b0b0b0' : '#333333',
+      grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+      accent: isDark ? '#5ba3f5' : '#4A90E2',
+      error: isDark ? '#ff4444' : '#C00000'
+    }
+  }
 
   useEffect(() => {
     loadData()
@@ -145,10 +161,44 @@ function StatsView({ onClose }) {
       if (response.ok) {
         const sessionData = await response.json()
         setSelectedSession(sessionData)
+        if (sessionData.keystrokes) {
+          setLocalKeystrokes(sessionData.keystrokes)
+          setCropStart(0)
+          setCropEnd(sessionData.keystrokes.length - 1)
+        }
       }
     } catch (err) {
       console.error('Failed to load session:', err)
     }
+  }
+
+  const getDisplayKeystrokes = () => {
+    if (!localKeystrokes) return selectedSession?.keystrokes || []
+    const end = cropEnd !== null ? cropEnd + 1 : localKeystrokes.length
+    return localKeystrokes.slice(cropStart, end)
+  }
+
+  const handleApplyCrop = () => {
+    if (!localKeystrokes) return
+    const end = cropEnd !== null ? cropEnd + 1 : localKeystrokes.length
+    const cropped = localKeystrokes.slice(cropStart, end)
+    
+    // Update timestamps to start from 0
+    const firstTimestamp = cropped[0]?.timestamp || 0
+    const adjusted = cropped.map((ks, i) => ({
+      ...ks,
+      timestamp: ks.timestamp - firstTimestamp
+    }))
+    
+    setLocalKeystrokes(adjusted)
+    setCropStart(0)
+    setCropEnd(adjusted.length - 1)
+    
+    // Update selectedSession with cropped keystrokes
+    setSelectedSession(prev => ({
+      ...prev,
+      keystrokes: adjusted
+    }))
   }
 
   if (loading && activeTab !== 'patterns') {
@@ -164,7 +214,6 @@ function StatsView({ onClose }) {
   return (
     <div className="stats-view fade-in">
       <div className="stats-header">
-        <h2>Statistics & Database</h2>
         <button onClick={onClose} className="close-button">×</button>
       </div>
 
@@ -196,62 +245,35 @@ function StatsView({ onClose }) {
       </div>
 
       {activeTab === 'overview' && stats && (
-        <>
-          <div className="card">
-            <h3>Database Overview</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '1.5rem' }}>
-              <div style={{ height: '300px' }}>
-                <Bar
-                  data={{
-                    labels: ['Sessions', 'Keystrokes', 'Characters'],
-                    datasets: [{
-                      label: 'Count',
-                      data: [
-                        stats.total_sessions || 0,
-                        Math.floor((stats.total_keystrokes || 0) / 100),
-                        Math.floor((stats.total_characters || 0) / 1000)
-                      ],
-                      backgroundColor: ['#94a3b8', '#8b5cf6', '#14b8a6']
-                    }]
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: { display: false },
-                      title: { display: true, text: 'Database Statistics', color: '#e2e8f0' }
-                    },
-                    scales: {
-                      y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } },
-                      x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } }
-                    }
-                  }}
-                />
-              </div>
-              <div style={{ height: '300px' }}>
-                {stats.sessions_by_mode && (
-                  <Doughnut
-                    data={{
-                      labels: Object.keys(stats.sessions_by_mode),
-                      datasets: [{
-                        data: Object.values(stats.sessions_by_mode),
-                        backgroundColor: ['#94a3b8', '#8b5cf6', '#14b8a6', '#ef4444', '#22c55e']
-                      }]
-                    }}
-                    options={{
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                        legend: { labels: { color: '#e2e8f0' } },
-                        title: { display: true, text: 'Sessions by Mode', color: '#e2e8f0' }
-                      }
-                    }}
-                  />
-                )}
-              </div>
+        <div className="card">
+          <div className="overview-grid">
+            <div className="overview-stat">
+              <div className="stat-value">{stats.total_sessions || 0}</div>
+              <div className="stat-label">Sessions</div>
             </div>
+            <div className="overview-stat">
+              <div className="stat-value">{(stats.total_keystrokes || 0).toLocaleString()}</div>
+              <div className="stat-label">Keystrokes</div>
+            </div>
+            <div className="overview-stat">
+              <div className="stat-value">{(stats.total_characters || 0).toLocaleString()}</div>
+              <div className="stat-label">Characters</div>
+            </div>
+            {stats.sessions_by_mode && Object.keys(stats.sessions_by_mode).length > 0 && (
+              <div className="overview-modes">
+                <div className="modes-label">Sessions by Mode:</div>
+                <div className="modes-list">
+                  {Object.entries(stats.sessions_by_mode).map(([mode, count]) => (
+                    <div key={mode} className="mode-item">
+                      <span className="mode-name">{mode}</span>
+                      <span className="mode-count">{count}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-        </>
+        </div>
       )}
 
       {activeTab === 'sessions' && (
@@ -291,109 +313,222 @@ function StatsView({ onClose }) {
                       </button>
                     </div>
                     
+                    {/* Deletion feedback */}
+                    {deletionFeedback && (
+                      <div className="deletion-feedback">
+                        {deletionFeedback.message}
+                      </div>
+                    )}
+                    
                     {/* Keystroke timing graph */}
                     <div className="keystroke-graph-container">
                       <div style={{ height: '200px', marginBottom: '1rem' }}>
-                        <Bar
-                          data={{
-                            labels: selectedSession.keystrokes.map((_, i) => i),
-                            datasets: [{
-                              label: 'Duration (ms)',
-                              data: selectedSession.keystrokes.map((ks, i) => {
+                        {(() => {
+                          const displayKeystrokes = getDisplayKeystrokes()
+                          const colors = getChartColors()
+                          return (
+                            <Bar
+                              data={{
+                                labels: displayKeystrokes.map((_, i) => i),
+                                datasets: [{
+                                  label: 'Duration (ms)',
+                              data: displayKeystrokes.map((ks, i) => {
                                 if (i === 0) return 0
-                                return (ks.timestamp - selectedSession.keystrokes[i-1].timestamp) || 0
+                                const prev = displayKeystrokes[i-1]
+                                // Check for breakpoint (prev_key is null or doesn't match previous key)
+                                if (ks.prev_key === null || ks.prev_key !== prev.key) {
+                                  return null // Create gap in chart for breakpoint
+                                }
+                                return (ks.timestamp - prev.timestamp) || 0
                               }),
-                              backgroundColor: selectedSession.keystrokes.map((_, i) => 
-                                selectedKeystrokeIndex === i ? '#ef4444' : '#94a3b8'
-                              )
-                            }]
-                          }}
-                          options={{
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            onClick: async (event, elements) => {
-                              if (elements.length > 0 && editingKeystrokes) {
-                                const idx = elements[0].index
-                                const ks = selectedSession.keystrokes[idx]
-                                
-                                if (!ks || !ks.id) {
-                                  alert('Cannot delete keystroke: no ID available')
-                                  return
+                              backgroundColor: displayKeystrokes.map((_, i) => {
+                                if (i === 0) return selectedKeystrokeIndex === i ? colors.error : colors.accent
+                                const ks = displayKeystrokes[i]
+                                const prev = displayKeystrokes[i-1]
+                                // Show breakpoint color (red tint) for discontinuities
+                                if (ks.prev_key === null || ks.prev_key !== prev.key) {
+                                  return colors.error + '80' // Semi-transparent red for breakpoints
                                 }
-                                
-                                if (confirm(`Delete keystroke "${ks.key === ' ' ? 'SPACE' : ks.key}"? This will cascade to all pattern calculations.`)) {
-                                  try {
-                                    const response = await fetch(`/api/keystroke/${ks.id}`, {
-                                      method: 'DELETE'
-                                    })
+                                return selectedKeystrokeIndex === i ? colors.error : colors.accent
+                              }),
+                              borderColor: displayKeystrokes.map((_, i) => {
+                                if (i === 0) return 'transparent'
+                                const ks = displayKeystrokes[i]
+                                const prev = displayKeystrokes[i-1]
+                                // Show breakpoint border (red) for discontinuities
+                                if (ks.prev_key === null || ks.prev_key !== prev.key) {
+                                  return colors.error // Red border for breakpoints
+                                }
+                                return 'transparent'
+                              }),
+                              borderWidth: displayKeystrokes.map((_, i) => {
+                                if (i === 0) return 0
+                                const ks = displayKeystrokes[i]
+                                const prev = displayKeystrokes[i-1]
+                                // Show breakpoint border
+                                if (ks.prev_key === null || ks.prev_key !== prev.key) {
+                                  return 2 // Thick border for breakpoints
+                                }
+                                return 0
+                              })
+                                }]
+                              }}
+                              options={{
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                onClick: async (event, elements) => {
+                                  if (elements.length > 0 && editingKeystrokes) {
+                                    const idx = elements[0].index
+                                    const displayKeystrokes = getDisplayKeystrokes()
+                                    const ks = displayKeystrokes[idx]
                                     
-                                    if (response.ok) {
-                                      // Reload session to update graph
-                                      await handleSessionClick(selectedSession.id)
-                                      setSelectedKeystrokeIndex(null)
-                                    } else {
-                                      alert('Failed to delete keystroke')
+                                    if (!ks || !ks.id) {
+                                      alert('Cannot delete keystroke: no ID available')
+                                      return
                                     }
-                                  } catch (err) {
-                                    console.error('Failed to delete keystroke:', err)
-                                    alert('Failed to delete keystroke')
+                                    
+                                    const keyDisplay = ks.key === ' ' ? 'SPACE' : ks.key
+                                    if (confirm(`Delete keystroke "${keyDisplay}"? This will create a breakpoint in the timing data.`)) {
+                                      try {
+                                        // Delete from backend
+                                        const response = await fetch(`/api/keystroke/${ks.id}`, {
+                                          method: 'DELETE'
+                                        })
+                                        
+                                        if (response.ok) {
+                                          // Show feedback
+                                          setDeletionFeedback({
+                                            message: `Deleted keystroke "${keyDisplay}" at index ${idx}. Breakpoint created.`,
+                                            timestamp: Date.now()
+                                          })
+                                          
+                                          // Clear feedback after 3 seconds
+                                          setTimeout(() => setDeletionFeedback(null), 3000)
+                                          
+                                          // Reload session to get updated data from backend (with breakpoint)
+                                          await handleSessionClick(selectedSession.id)
+                                          setSelectedKeystrokeIndex(null)
+                                        } else {
+                                          alert('Failed to delete keystroke')
+                                        }
+                                      } catch (err) {
+                                        console.error('Failed to delete keystroke:', err)
+                                        alert('Failed to delete keystroke')
+                                      }
+                                    }
+                                  } else if (elements.length > 0) {
+                                    // If not editing, just select for viewing
+                                    setSelectedKeystrokeIndex(elements[0].index)
+                                  }
+                                },
+                                plugins: {
+                                  legend: { display: false },
+                                  tooltip: {
+                                    callbacks: {
+                                    label: (context) => {
+                                      const displayKeystrokes = getDisplayKeystrokes()
+                                      const idx = context.dataIndex
+                                      const ks = displayKeystrokes[idx]
+                                      
+                                      if (context.parsed.y === null) {
+                                        return [
+                                          'BREAKPOINT',
+                                          `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
+                                          'Previous keystroke was deleted'
+                                        ]
+                                      }
+                                      
+                                      return [
+                                        `Duration: ${context.parsed.y?.toFixed(2) || 0}ms`,
+                                        `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
+                                        idx > 0 ? `From: "${displayKeystrokes[idx-1].key === ' ' ? 'SPACE' : displayKeystrokes[idx-1].key}"` : 'Start'
+                                      ]
+                                    }
+                                    }
+                                  }
+                                },
+                                scales: {
+                                  y: { 
+                                    ticks: { color: colors.textSub }, 
+                                    grid: { color: colors.grid },
+                                    title: { display: true, text: 'Duration (ms)', color: colors.text }
+                                  },
+                                  x: { 
+                                    ticks: { color: colors.textSub }, 
+                                    grid: { color: colors.grid },
+                                    title: { display: true, text: 'Keystroke Index', color: colors.text }
                                   }
                                 }
-                              } else if (elements.length > 0) {
-                                // If not editing, just select for viewing
-                                setSelectedKeystrokeIndex(elements[0].index)
-                              }
-                            },
-                            plugins: {
-                              legend: { display: false },
-                              tooltip: {
-                                callbacks: {
-                                  label: (context) => {
-                                    const idx = context.dataIndex
-                                    const ks = selectedSession.keystrokes[idx]
-                                    return [
-                                      `Duration: ${context.parsed.y.toFixed(2)}ms`,
-                                      `Key: "${ks.key === ' ' ? 'SPACE' : ks.key}"`,
-                                      idx > 0 ? `From: "${selectedSession.keystrokes[idx-1].key === ' ' ? 'SPACE' : selectedSession.keystrokes[idx-1].key}"` : 'Start'
-                                    ]
-                                  }
-                                }
-                              }
-                            },
-                            scales: {
-                              y: { 
-                                ticks: { color: '#94a3b8' }, 
-                                grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                                title: { display: true, text: 'Duration (ms)', color: '#e2e8f0' }
-                              },
-                              x: { 
-                                ticks: { color: '#94a3b8' }, 
-                                grid: { color: 'rgba(148, 163, 184, 0.2)' },
-                                title: { display: true, text: 'Keystroke Index', color: '#e2e8f0' }
-                              }
-                            }
-                          }}
-                        />
+                              }}
+                            />
+                          )
+                        })()}
                       </div>
+                      
+                      {/* Crop controls */}
+                      {localKeystrokes && localKeystrokes.length > 0 && (
+                        <div className="crop-controls">
+                          <div className="crop-input-group">
+                            <label>Crop Start:</label>
+                            <input
+                              type="number"
+                              min="0"
+                              max={localKeystrokes.length - 1}
+                              value={cropStart}
+                              onChange={(e) => setCropStart(Math.max(0, Math.min(parseInt(e.target.value) || 0, cropEnd !== null ? cropEnd : localKeystrokes.length - 1)))}
+                            />
+                          </div>
+                          <div className="crop-input-group">
+                            <label>Crop End:</label>
+                            <input
+                              type="number"
+                              min={cropStart}
+                              max={localKeystrokes.length - 1}
+                              value={cropEnd !== null ? cropEnd : localKeystrokes.length - 1}
+                              onChange={(e) => {
+                                const maxIndex = localKeystrokes.length - 1
+                                const value = parseInt(e.target.value) || 0
+                                setCropEnd(Math.max(cropStart, Math.min(value, maxIndex)))
+                              }}
+                            />
+                          </div>
+                          <button onClick={handleApplyCrop} className="crop-button">
+                            Apply Crop
+                          </button>
+                        </div>
+                      )}
                     </div>
                     
-                    {selectedKeystrokeIndex !== null && editingKeystrokes && (
-                      <div className="keystroke-edit-panel">
-                        <div className="edit-panel-header">
-                          <strong>Editing Keystroke #{selectedKeystrokeIndex}</strong>
-                          <button 
-                            onClick={async () => {
-                              const ks = selectedSession.keystrokes[selectedKeystrokeIndex]
-                              if (!ks.id) return
-                              
-                              if (confirm('Delete this keystroke? This will cascade to all pattern calculations.')) {
+                    {selectedKeystrokeIndex !== null && editingKeystrokes && (() => {
+                      const displayKeystrokes = getDisplayKeystrokes()
+                      const ks = displayKeystrokes[selectedKeystrokeIndex]
+                      if (!ks) return null
+                      return (
+                        <div className="keystroke-edit-panel">
+                          <div className="edit-panel-header">
+                            <strong>Editing Keystroke #{selectedKeystrokeIndex}</strong>
+                            <button 
+                              onClick={async () => {
+                                if (!ks.id) return
+                                
+                              const keyDisplay = ks.key === ' ' ? 'SPACE' : ks.key
+                              if (confirm(`Delete keystroke "${keyDisplay}"? This will create a breakpoint in the timing data.`)) {
                                 try {
                                   const response = await fetch(`/api/keystroke/${ks.id}`, {
                                     method: 'DELETE'
                                   })
                                   
                                   if (response.ok) {
-                                    // Reload session
+                                    // Show feedback
+                                    setDeletionFeedback({
+                                      message: `Deleted keystroke "${keyDisplay}" at index ${selectedKeystrokeIndex}. Breakpoint created.`,
+                                      timestamp: Date.now()
+                                    })
+                                    
+                                    // Clear feedback after 3 seconds
+                                    setTimeout(() => setDeletionFeedback(null), 3000)
+                                    
+                                    // Reload session to get updated data from backend (with breakpoint)
                                     await handleSessionClick(selectedSession.id)
                                     setSelectedKeystrokeIndex(null)
                                   }
@@ -402,41 +537,47 @@ function StatsView({ onClose }) {
                                   alert('Failed to delete keystroke')
                                 }
                               }
-                            }}
-                            className="delete-keystroke-button"
-                          >
-                            🗑️ Delete
-                          </button>
+                              }}
+                              className="delete-keystroke-button"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <div className="edit-panel-details">
+                            <div>Key: "{ks.key === ' ' ? 'SPACE' : ks.key}"</div>
+                            {ks.prev_key && (
+                              <div>From: "{ks.prev_key === ' ' ? 'SPACE' : ks.prev_key}"</div>
+                            )}
+                            <div>Duration: {selectedKeystrokeIndex > 0 ? 
+                              (displayKeystrokes[selectedKeystrokeIndex].timestamp - displayKeystrokes[selectedKeystrokeIndex - 1].timestamp).toFixed(2) 
+                              : 0}ms</div>
+                          </div>
                         </div>
-                        <div className="edit-panel-details">
-                          <div>Key: "{selectedSession.keystrokes[selectedKeystrokeIndex].key === ' ' ? 'SPACE' : selectedSession.keystrokes[selectedKeystrokeIndex].key}"</div>
-                          {selectedSession.keystrokes[selectedKeystrokeIndex].prev_key && (
-                            <div>From: "{selectedSession.keystrokes[selectedKeystrokeIndex].prev_key === ' ' ? 'SPACE' : selectedSession.keystrokes[selectedKeystrokeIndex].prev_key}"</div>
-                          )}
-                          <div>Duration: {selectedKeystrokeIndex > 0 ? 
-                            (selectedSession.keystrokes[selectedKeystrokeIndex].timestamp - selectedSession.keystrokes[selectedKeystrokeIndex - 1].timestamp).toFixed(2) 
-                            : 0}ms</div>
-                        </div>
-                      </div>
-                    )}
+                      )
+                    })()}
                     
                     <div className="keystroke-items">
-                      {selectedSession.keystrokes.map((ks, idx) => (
-                        <div 
-                          key={ks.id || idx} 
-                          className={`keystroke-item ${editingKeystrokes && selectedKeystrokeIndex === idx ? 'selected' : ''}`}
-                          onClick={() => editingKeystrokes && setSelectedKeystrokeIndex(idx)}
-                        >
-                          <span className="ks-key">"{ks.key === ' ' ? 'SPACE' : ks.key}"</span>
-                          {ks.prev_key && <span className="ks-transition">← "{ks.prev_key === ' ' ? 'SPACE' : ks.prev_key}"</span>}
-                          {ks.finger && <span className="ks-finger">{ks.finger}</span>}
-                          {idx > 0 && (
-                            <span className="ks-duration">
-                              {(ks.timestamp - selectedSession.keystrokes[idx-1].timestamp).toFixed(2)}ms
-                            </span>
-                          )}
-                        </div>
-                      ))}
+                      {getDisplayKeystrokes().map((ks, idx) => {
+                        const displayKeystrokes = getDisplayKeystrokes()
+                        const hasBreakpoint = ks.prev_key === null || (idx > 0 && ks.prev_key !== displayKeystrokes[idx-1].key)
+                        return (
+                          <div 
+                            key={ks.id || idx} 
+                            className={`keystroke-item ${editingKeystrokes && selectedKeystrokeIndex === idx ? 'selected' : ''} ${hasBreakpoint ? 'has-breakpoint' : ''}`}
+                            onClick={() => editingKeystrokes && setSelectedKeystrokeIndex(idx)}
+                          >
+                            <span className="ks-key">"{ks.key === ' ' ? 'SPACE' : ks.key}"</span>
+                            {ks.prev_key && <span className="ks-transition">← "{ks.prev_key === ' ' ? 'SPACE' : ks.prev_key}"</span>}
+                            {hasBreakpoint && <span className="ks-break">[BREAKPOINT]</span>}
+                            {ks.finger && <span className="ks-finger">{ks.finger}</span>}
+                            {idx > 0 && (
+                              <span className="ks-duration">
+                                {(ks.timestamp - displayKeystrokes[idx-1].timestamp).toFixed(2)}ms
+                              </span>
+                            )}
+                          </div>
+                        )
+                      })}
                     </div>
                   </div>
                 )}
@@ -466,7 +607,7 @@ function StatsView({ onClose }) {
                           onClick={(e) => handleDeleteSession(session.id, e)}
                           title="Delete session"
                         >
-                          🗑️
+                          ×
                         </button>
                       </div>
                       <div className="session-text-preview">
@@ -497,7 +638,10 @@ function StatsView({ onClose }) {
                       const url = window.URL.createObjectURL(blob)
                       const a = document.createElement('a')
                       a.href = url
-                      a.download = `typing_data_${new Date().toISOString().split('T')[0]}.db`
+                      const now = new Date()
+                      const dateStr = now.toISOString().split('T')[0]
+                      const timeStr = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+                      a.download = `typing_data_${dateStr}_${timeStr}.db`
                       document.body.appendChild(a)
                       a.click()
                       document.body.removeChild(a)
@@ -510,7 +654,7 @@ function StatsView({ onClose }) {
                 }}
                 className="db-button"
               >
-                📥 Download Database
+                Download Database
               </button>
             </div>
             <div className="db-action-item">
@@ -557,7 +701,7 @@ function StatsView({ onClose }) {
                 onClick={() => document.getElementById('db-upload-input').click()}
                 className="db-button"
               >
-                📤 Upload Database
+                Upload Database
               </button>
             </div>
           </div>
@@ -611,18 +755,18 @@ function StatsView({ onClose }) {
                       <h3>Digraph Details: "{selectedDigraph.pattern}"</h3>
                       <button onClick={() => { setShowDigraphModal(false); setSelectedDigraph(null) }} className="close-info">×</button>
                     </div>
-                  <div className="digraph-stats">
-                    <div className="stat-row">
-                      <span>Average Time:</span>
-                      <strong>{selectedDigraph.avg_time}ms</strong>
+                  <div className="digraph-stats-compact">
+                    <div className="stat-item">
+                      <span className="stat-label">Avg:</span>
+                      <span className="stat-value">{selectedDigraph.avg_time}ms</span>
                     </div>
-                    <div className="stat-row">
-                      <span>Occurrences:</span>
-                      <strong>{selectedDigraph.count}</strong>
+                    <div className="stat-item">
+                      <span className="stat-label">Count:</span>
+                      <span className="stat-value">{selectedDigraph.count}</span>
                     </div>
-                    <div className="stat-row">
-                      <span>Time Range:</span>
-                      <strong>{selectedDigraph.min_time}ms - {selectedDigraph.max_time}ms</strong>
+                    <div className="stat-item">
+                      <span className="stat-label">Range:</span>
+                      <span className="stat-value">{selectedDigraph.min_time}-{selectedDigraph.max_time}ms</span>
                     </div>
                   </div>
                   {selectedDigraph.details && (
@@ -661,7 +805,7 @@ function StatsView({ onClose }) {
                                 datasets: [{
                                   label: 'Frequency',
                                   data: selectedDigraph.details.distribution.values || [],
-                                  backgroundColor: '#94a3b8'
+                                  backgroundColor: '#4A90E2'
                                 }]
                               }}
                               options={{
@@ -672,8 +816,20 @@ function StatsView({ onClose }) {
                                   title: { display: false }
                                 },
                                 scales: {
-                                  y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } },
-                                  x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.2)' } }
+                                  y: { 
+                                    ticks: { color: getChartColors().textSub }, 
+                                    grid: { color: getChartColors().grid },
+                                    title: { display: true, text: 'Frequency', color: getChartColors().text }
+                                  },
+                                  x: { 
+                                    ticks: { 
+                                      color: getChartColors().textSub,
+                                      maxRotation: 45,
+                                      minRotation: 45
+                                    }, 
+                                    grid: { color: getChartColors().grid },
+                                    title: { display: true, text: 'Time (ms)', color: getChartColors().text }
+                                  }
                                 }
                               }}
                             />
