@@ -5,6 +5,12 @@ Repository for keystroke-related database operations.
 from typing import Dict, List, Optional
 
 from ..connection import DatabaseConnection, get_db
+from ...keyboard_layout import (
+    FINGER_ASSIGNMENTS,
+    OVERWRITABLE_LETTERS,
+    get_finger,
+    get_hand,
+)
 
 
 class KeystrokeRepository:
@@ -25,6 +31,10 @@ class KeystrokeRepository:
         """
         Create multiple keystrokes for a session.
 
+        For non-overwritable letters, automatically assigns default finger/hand
+        from FINGER_ASSIGNMENTS. Overwritable letters (e, b, u, i, y) use the
+        finger/hand provided by the frontend.
+
         Args:
             session_id: The session ID
             keystrokes: List of keystroke dicts with 'key', 'timestamp', 'prev_key'
@@ -35,17 +45,30 @@ class KeystrokeRepository:
         with self.db.connection() as conn:
             c = conn.cursor()
             for ks in keystrokes:
+                key_char = ks['key']
+                key_lower = key_char.lower()
+
+                # For non-overwritable letters, use default finger assignments
+                # For overwritable letters, use what frontend provides
+                if key_lower not in OVERWRITABLE_LETTERS:
+                    finger = get_finger(key_char)
+                    hand = get_hand(key_char)
+                else:
+                    finger = ks.get('finger')
+                    hand = ks.get('hand')
+
                 c.execute(
                     """INSERT INTO keystrokes
-                       (session_id, key_char, timestamp, prev_key, finger, hand)
-                       VALUES (?, ?, ?, ?, ?, ?)""",
+                       (session_id, key_char, timestamp, prev_key, finger, hand, current_word)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
                     (
                         session_id,
-                        ks['key'],
+                        key_char,
                         ks['timestamp'],
                         ks.get('prev_key'),
-                        ks.get('finger'),
-                        ks.get('hand'),
+                        finger,
+                        hand,
+                        ks.get('current_word'),
                     )
                 )
             return len(keystrokes)
@@ -74,6 +97,7 @@ class KeystrokeRepository:
                     "prev_key": row["prev_key"],
                     "finger": row["finger"],
                     "hand": row["hand"],
+                    "current_word": row["current_word"] if "current_word" in row.keys() else None,
                 }
                 for row in c.fetchall()
             ]

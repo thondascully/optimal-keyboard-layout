@@ -106,7 +106,7 @@ function ModeSelector({ mode, onModeChange }) {
           title={MODE_INFO[m.id].description}
         >
           {m.label}
-          <span className="mode-count">{getModeDataCount(m.id)}</span>
+            <span className="mode-count">{getModeDataCount(m.id)}</span>
         </button>
       ))}
       {showInfo && (

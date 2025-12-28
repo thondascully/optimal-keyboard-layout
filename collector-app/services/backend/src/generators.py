@@ -4,7 +4,9 @@ Text generators for different typing practice modes.
 
 import random
 import string
-from typing import Callable, Dict
+from typing import Callable, Dict, Optional, Tuple, List
+
+from .keyboard_layout import FINGER_ASSIGNMENTS, get_finger
 
 # Top 200 most common English words
 TOP_200 = [
@@ -128,6 +130,105 @@ def generate_trigraph_test() -> str:
     """
     # O(1) solution - much better than the O(26^3) approach!
     return "".join(random.choices(LOWERCASE, k=3))
+
+
+# Build reverse lookup: finger -> list of keys
+_KEYS_BY_FINGER: Dict[str, List[str]] = {}
+for key, finger in FINGER_ASSIGNMENTS.items():
+    if finger not in _KEYS_BY_FINGER:
+        _KEYS_BY_FINGER[finger] = []
+    # Only include lowercase letters for trigraph generation
+    if key in LOWERCASE:
+        _KEYS_BY_FINGER[finger].append(key)
+
+
+def generate_stratified_trigraph(
+    target_pair: Optional[Tuple[str, str]] = None,
+    position: Optional[int] = None,
+) -> str:
+    """
+    Generate a trigraph that targets a specific finger pair.
+
+    Args:
+        target_pair: Tuple of (from_finger, to_finger) to target.
+                    If None, generates a random trigraph.
+        position: Which position should contain the target pair.
+                  0 = first->second, 1 = second->third.
+                  If None, randomly chooses.
+
+    Returns:
+        A 3-character trigraph string
+
+    Example:
+        generate_stratified_trigraph(('left_index', 'right_middle'), position=0)
+        # Returns something like 'fuk' where f->u is left_index->right_middle
+    """
+    if target_pair is None:
+        return generate_trigraph_test()
+
+    from_finger, to_finger = target_pair
+
+    # Get available keys for each finger
+    from_keys = _KEYS_BY_FINGER.get(from_finger, [])
+    to_keys = _KEYS_BY_FINGER.get(to_finger, [])
+
+    if not from_keys or not to_keys:
+        # Fallback to random if finger has no keys
+        return generate_trigraph_test()
+
+    # Choose position if not specified
+    if position is None:
+        position = random.randint(0, 1)
+
+    # Generate the trigraph
+    k1 = random.choice(from_keys)
+    k2 = random.choice(to_keys)
+    k3 = random.choice(LOWERCASE)
+    k0 = random.choice(LOWERCASE)
+
+    if position == 0:
+        # Target pair at position 1-2
+        return f"{k1}{k2}{k3}"
+    else:
+        # Target pair at position 2-3
+        return f"{k0}{k1}{k2}"
+
+
+def generate_stratified_batch(
+    gaps: List[Dict],
+    batch_size: int = 10,
+) -> List[Dict]:
+    """
+    Generate a batch of trigraphs targeting coverage gaps.
+
+    Args:
+        gaps: List of gap dicts with 'from' and 'to' finger names
+        batch_size: Number of trigraphs to generate
+
+    Returns:
+        List of dicts with 'trigraph' and 'target_pair' info
+    """
+    if not gaps:
+        # No gaps - generate random trigraphs
+        return [
+            {'trigraph': generate_trigraph_test(), 'target_pair': None}
+            for _ in range(batch_size)
+        ]
+
+    results = []
+    for i in range(batch_size):
+        # Cycle through gaps, prioritizing high-priority ones
+        gap = gaps[i % len(gaps)]
+        target_pair = (gap['from'], gap['to'])
+        trigraph = generate_stratified_trigraph(target_pair)
+        results.append({
+            'trigraph': trigraph,
+            'target_pair': target_pair,
+            'target_from': gap['from'],
+            'target_to': gap['to'],
+        })
+
+    return results
 
 
 # Generator registry

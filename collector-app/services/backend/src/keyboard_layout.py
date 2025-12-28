@@ -35,25 +35,30 @@ KEY_POSITIONS = {
 FINGER_ASSIGNMENTS = {
     # Left hand
     'q': 'left_ring', 'a': 'left_ring', 'z': 'left_ring',
-    'w': 'left_middle', 's': 'left_middle', 'e': 'left_middle',
-    'r': 'left_index', 'd': 'left_index', 'x': 'left_index',
-    'f': 'left_index', 'c': 'left_index', 'v': 'left_index',
-    'g': 'left_index', 't': 'left_index',
+    'w': 'left_middle', 's': 'left_middle', 'x': 'left_index',
+    'e': 'left_middle', 'd': 'left_index', 'c': 'left_index',
+    'r': 'left_index', 't': 'left_index', 'f': 'left_index', 'g': 'left_index',
+    'v': 'left_index', 'b': 'right_index',
 
     # Right hand
-    'y': 'right_index', 'h': 'right_index', 'j': 'right_index',
-    'b': 'right_index', 'n': 'right_index', 'm': 'right_index',
-    'u': 'right_middle', 'i': 'right_middle', 'k': 'right_middle',
+    'y': 'right_index', 'u': 'right_index', 'h': 'right_index', 'j': 'right_index',
+    'n': 'right_index', 'm': 'right_index',
+    'i': 'right_middle', 'k': 'right_index',
+    'o': 'right_middle', 'l': 'right_middle',
     'p': 'right_ring',
 
     # Other keys (keep existing assignments for punctuation)
-    'o': 'right_ring', 'l': 'right_ring', '.': 'right_ring',
+    '.': 'right_ring',
     ',': 'right_middle',
     ';': 'right_pinky', '/': 'right_pinky',
 
     # Space (typically right thumb, but can vary)
     ' ': 'right_thumb',
 }
+
+# Letters that can be typed with different fingers depending on context
+# These are manually annotated and should NOT be overwritten by migration scripts
+OVERWRITABLE_LETTERS = {'e', 'b', 'u', 'i', 'y'}
 
 # Hand assignments (derived from finger assignments)
 HAND_ASSIGNMENTS = {

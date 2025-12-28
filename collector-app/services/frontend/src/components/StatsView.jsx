@@ -1,26 +1,24 @@
 import { useState, useEffect } from 'react'
 import {
+  BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell
+} from 'recharts'
+// Keep Chart.js for the keystroke timing chart (has complex click interactions)
+import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
   BarElement,
-  Title,
   Tooltip,
   Legend,
-  ArcElement,
 } from 'chart.js'
-import { Bar, Doughnut } from 'react-chartjs-2'
+import { Bar } from 'react-chartjs-2'
+import CoverageTab from './stats/CoverageTab'
+import DeviationTab from './stats/DeviationTab'
+import PatternsTab from './stats/PatternsTab'
+import DataViewerTab from './stats/DataViewerTab'
 import './StatsView.css'
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-)
+ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
 
 function StatsView({ onClose }) {
   const [sessions, setSessions] = useState([])
@@ -239,10 +237,13 @@ function StatsView({ onClose }) {
         if (selectedSession && selectedSession.id === sessionId) {
           setSelectedSession(null)
         }
+      } else {
+        const errorData = await response.json().catch(() => ({}))
+        alert(`Failed to delete session: ${errorData.detail || response.statusText}`)
       }
     } catch (err) {
       console.error('Failed to delete session:', err)
-      alert('Failed to delete session')
+      alert(`Failed to delete session: ${err.message}`)
     }
   }
 
@@ -347,7 +348,7 @@ function StatsView({ onClose }) {
         >
           Database
         </button>
-        <button 
+        <button
           className={activeTab === 'data' ? 'active' : ''}
           onClick={() => {
             setActiveTab('data')
@@ -357,6 +358,18 @@ function StatsView({ onClose }) {
           }}
         >
           Data Viewer
+        </button>
+        <button
+          className={activeTab === 'coverage' ? 'active' : ''}
+          onClick={() => setActiveTab('coverage')}
+        >
+          Coverage
+        </button>
+        <button
+          className={activeTab === 'deviations' ? 'active' : ''}
+          onClick={() => setActiveTab('deviations')}
+        >
+          Deviations
         </button>
       </div>
 
@@ -492,37 +505,37 @@ function StatsView({ onClose }) {
                       </div>
                     </div>
                     {patterns.digraphs.length > 0 && (
-                      <div style={{ height: '250px', marginTop: '1rem' }}>
-                <Bar
-                  data={{
-                            labels: patterns.digraphs.slice(0, 10).map(d => d.pattern),
-                    datasets: [{
-                              label: 'Average Time (ms)',
-                              data: patterns.digraphs.slice(0, 10).map(d => d.avg_time),
-                              backgroundColor: getChartColors().accent
-                    }]
-                  }}
-                  options={{
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                      legend: { display: false },
-                              title: { display: true, text: 'Top 10 Fastest Digraphs', color: getChartColors().text }
-                    },
-                    scales: {
-                              y: { 
-                                ticks: { color: getChartColors().textSub }, 
-                                grid: { color: getChartColors().grid },
-                                title: { display: true, text: 'Time (ms)', color: getChartColors().text }
-                              },
-                              x: { 
-                                ticks: { color: getChartColors().textSub }, 
-                                grid: { color: getChartColors().grid },
-                                title: { display: true, text: 'Digraph', color: getChartColors().text }
-                              }
-                      }
-                    }}
-                  />
+                      <div className="recharts-container">
+                        <div className="chart-title-inline">Top 10 Fastest Digraphs</div>
+                        <ResponsiveContainer width="100%" height={220}>
+                          <BarChart
+                            data={patterns.digraphs.slice(0, 10).map(d => ({ name: d.pattern, time: d.avg_time, count: d.count }))}
+                            margin={{ top: 10, right: 20, left: 10, bottom: 40 }}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e0e0e0)" vertical={false} />
+                            <XAxis
+                              dataKey="name"
+                              tick={{ fill: 'var(--text-secondary, #666)', fontSize: 12 }}
+                              tickLine={false}
+                              axisLine={{ stroke: 'var(--border-color, #ddd)' }}
+                              angle={-45}
+                              textAnchor="end"
+                              height={50}
+                            />
+                            <YAxis
+                              tick={{ fill: 'var(--text-secondary, #666)', fontSize: 11 }}
+                              tickLine={false}
+                              axisLine={false}
+                              label={{ value: 'Time (ms)', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary, #666)', fontSize: 11 }}
+                            />
+                            <RechartsTooltip
+                              contentStyle={{ background: 'var(--bg-primary, white)', border: '1px solid var(--border-color, #ddd)', borderRadius: '8px' }}
+                              formatter={(value, name) => [`${value}ms`, 'Avg Time']}
+                              labelFormatter={(label) => `"${label}"`}
+                            />
+                            <RechartsBar dataKey="time" fill="var(--accent-color, #4A90E2)" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
                       </div>
                 )}
               </div>
@@ -1170,6 +1183,11 @@ function StatsView({ onClose }) {
       )}
 
       {activeTab === 'patterns' && (
+        <PatternsTab />
+      )}
+
+      {/* Legacy patterns code - replaced with PatternsTab */}
+      {false && activeTab === 'patterns-legacy' && (
         <>
           <div className="card">
             <div className="pattern-filter-controls">
@@ -1392,177 +1410,116 @@ function StatsView({ onClose }) {
       )}
 
       {activeTab === 'data' && (
-        <div className="data-viewer">
-          <div className="card">
-            <div className="data-viewer-header">
-              <h3>Keystroke Data Viewer</h3>
-              <div className="data-view-controls">
-                <button
-                  className={dataViewMode === 'all' ? 'active' : ''}
-                  onClick={() => setDataViewMode('all')}
-                >
-                  All Data
-                </button>
-                <button
-                  className={dataViewMode === 'by_finger' ? 'active' : ''}
-                  onClick={() => setDataViewMode('by_finger')}
-                >
-                  By Finger
-                </button>
-                <button
-                  className={dataViewMode === 'by_hand' ? 'active' : ''}
-                  onClick={() => setDataViewMode('by_hand')}
-                >
-                  By Hand
-                </button>
-                <button
-                  className={dataViewMode === 'by_key' ? 'active' : ''}
-                  onClick={() => setDataViewMode('by_key')}
-                >
-                  By Key
-                </button>
-                <button onClick={loadKeystrokesData} disabled={dataLoading}>
-                  {dataLoading ? 'Loading...' : 'Refresh'}
-                </button>
-              </div>
+        <DataViewerTab />
+      )}
+
+      {activeTab === 'coverage' && (
+        <CoverageTab />
+      )}
+
+      {activeTab === 'deviations' && (
+        <DeviationTab />
+      )}
+
+      {/* Pattern Detail Modal - accessible from any tab */}
+      {showDigraphModal && selectedDigraph && (
+        <div className="modal-overlay" onClick={() => { setShowDigraphModal(false); setSelectedDigraph(null) }}>
+          <div className="modal-content digraph-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="digraph-detail-header">
+              <h3>Pattern Details: "{selectedDigraph.pattern}"</h3>
+              <button onClick={() => { setShowDigraphModal(false); setSelectedDigraph(null) }} className="close-info">×</button>
             </div>
-
-            {dataLoading ? (
-              <div className="loading">Loading keystroke data...</div>
-            ) : keystrokesData ? (
-              <>
-                <div className="data-stats-summary">
-                  <div className="summary-item">
-                    <span className="summary-label">Total Keystrokes:</span>
-                    <span className="summary-value">{keystrokesData.total_count.toLocaleString()}</span>
-                  </div>
-                  <div className="summary-item">
-                    <span className="summary-label">Loaded:</span>
-                    <span className="summary-value">{keystrokesData.keystrokes.length.toLocaleString()}</span>
-                  </div>
+            <div className="digraph-stats-compact">
+              <div className="stat-item">
+                <span className="stat-label">Avg:</span>
+                <span className="stat-value">{selectedDigraph.avg_time}ms</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Count:</span>
+                <span className="stat-value">{selectedDigraph.count}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Range:</span>
+                <span className="stat-value">{selectedDigraph.min_time}-{selectedDigraph.max_time}ms</span>
+              </div>
+              {selectedDigraph.raw_avg_time && selectedDigraph.raw_avg_time !== selectedDigraph.avg_time && (
+                <div className="stat-item">
+                  <span className="stat-label">Raw Avg:</span>
+                  <span className="stat-value">{selectedDigraph.raw_avg_time}ms</span>
                 </div>
+              )}
+              {selectedDigraph.excluded_count > 0 && (
+                <div className="stat-item">
+                  <span className="stat-label">Excluded:</span>
+                  <span className="stat-value excluded">{selectedDigraph.excluded_count}</span>
+                </div>
+              )}
+            </div>
+            {selectedDigraph.details && (
+              <>
+                {selectedDigraph.details.words && selectedDigraph.details.words.length > 0 && (
+                  <div className="digraph-words">
+                    <h4>Words Containing This Pattern</h4>
+                    <div className="words-list">
+                      {selectedDigraph.details.words.map((word, idx) => {
+                        const pattern = selectedDigraph.pattern.replace(/"/g, '').toLowerCase()
+                        const wordLower = word.toLowerCase()
+                        const patternIndex = wordLower.indexOf(pattern)
 
-                {dataViewMode === 'all' && (
-                  <div className="data-table-container">
-                    <table className="data-table">
-                      <thead>
-                        <tr>
-                          <th>ID</th>
-                          <th>Key</th>
-                          <th>Finger</th>
-                          <th>Hand</th>
-                          <th>Prev Key</th>
-                          <th>Session ID</th>
-                          <th>Mode</th>
-                          <th>Timestamp</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {keystrokesData.keystrokes.map((ks) => (
-                          <tr key={ks.id}>
-                            <td>{ks.id}</td>
-                            <td className="key-cell">{ks.key === ' ' ? 'SPACE' : ks.key}</td>
-                            <td>{ks.finger || '-'}</td>
-                            <td>{ks.hand || '-'}</td>
-                            <td>{ks.prev_key || '-'}</td>
-                            <td>{ks.session_id}</td>
-                            <td>{ks.mode}</td>
-                            <td>{new Date(ks.timestamp * 1000).toLocaleString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+                        if (patternIndex === -1) {
+                          return <span key={idx} className="word-tag">{word}</span>
+                        }
 
-                {dataViewMode === 'by_finger' && (
-                  <div className="data-grouped-view">
-                    {Object.entries(keystrokesData.statistics.by_finger).map(([finger, count]) => {
-                      const fingerKeystrokes = keystrokesData.keystrokes.filter(ks => ks.finger === finger)
-                      return (
-                        <div key={finger} className="data-group">
-                          <div className="group-header">
-                            <h4>{finger}</h4>
-                            <span className="group-count">{count} keystrokes</span>
-                          </div>
-                          <div className="group-items">
-                            {fingerKeystrokes.slice(0, 50).map((ks) => (
-                              <div key={ks.id} className="data-item">
-                                <span className="item-key">{ks.key === ' ' ? 'SPACE' : ks.key}</span>
-                                <span className="item-hand">{ks.hand || '-'}</span>
-                                <span className="item-session">Session {ks.session_id}</span>
-                              </div>
-                            ))}
-                            {fingerKeystrokes.length > 50 && (
-                              <div className="item-more">... and {fingerKeystrokes.length - 50} more</div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {dataViewMode === 'by_hand' && (
-                  <div className="data-grouped-view">
-                    {Object.entries(keystrokesData.statistics.by_hand).map(([hand, count]) => {
-                      const handKeystrokes = keystrokesData.keystrokes.filter(ks => ks.hand === hand)
-                      return (
-                        <div key={hand} className="data-group">
-                          <div className="group-header">
-                            <h4>{hand}</h4>
-                            <span className="group-count">{count} keystrokes</span>
-                          </div>
-                          <div className="group-items">
-                            {handKeystrokes.slice(0, 50).map((ks) => (
-                              <div key={ks.id} className="data-item">
-                                <span className="item-key">{ks.key === ' ' ? 'SPACE' : ks.key}</span>
-                                <span className="item-finger">{ks.finger || '-'}</span>
-                                <span className="item-session">Session {ks.session_id}</span>
-                              </div>
-                            ))}
-                            {handKeystrokes.length > 50 && (
-                              <div className="item-more">... and {handKeystrokes.length - 50} more</div>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-
-                {dataViewMode === 'by_key' && (
-                  <div className="data-grouped-view">
-                    {Object.entries(keystrokesData.statistics.by_key)
-                      .sort((a, b) => b[1] - a[1])
-                      .map(([key, count]) => {
-                        const keyKeystrokes = keystrokesData.keystrokes.filter(ks => ks.key === key)
                         return (
-                          <div key={key} className="data-group">
-                            <div className="group-header">
-                              <h4>"{key === ' ' ? 'SPACE' : key}"</h4>
-                              <span className="group-count">{count} keystrokes</span>
-                            </div>
-                            <div className="group-items">
-                              {keyKeystrokes.slice(0, 50).map((ks) => (
-                                <div key={ks.id} className="data-item">
-                                  <span className="item-finger">{ks.finger || '-'}</span>
-                                  <span className="item-hand">{ks.hand || '-'}</span>
-                                  <span className="item-session">Session {ks.session_id}</span>
-                                </div>
-                              ))}
-                              {keyKeystrokes.length > 50 && (
-                                <div className="item-more">... and {keyKeystrokes.length - 50} more</div>
-                              )}
-                            </div>
-                          </div>
+                          <span key={idx} className="word-tag">
+                            {word.substring(0, patternIndex)}
+                            <span className="highlighted-digraph">{word.substring(patternIndex, patternIndex + pattern.length)}</span>
+                            {word.substring(patternIndex + pattern.length)}
+                          </span>
                         )
                       })}
+                    </div>
+                  </div>
+                )}
+                {selectedDigraph.details.distribution && (
+                  <div className="digraph-distribution">
+                    <h4>Time Distribution</h4>
+                    <div className="recharts-container">
+                      <ResponsiveContainer width="100%" height={180}>
+                        <BarChart
+                          data={(selectedDigraph.details.distribution.labels || []).map((label, i) => ({
+                            name: label,
+                            value: (selectedDigraph.details.distribution.values || [])[i] || 0
+                          }))}
+                          margin={{ top: 10, right: 10, left: 10, bottom: 40 }}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color, #e0e0e0)" vertical={false} />
+                          <XAxis
+                            dataKey="name"
+                            tick={{ fill: 'var(--text-secondary, #666)', fontSize: 10 }}
+                            tickLine={false}
+                            axisLine={{ stroke: 'var(--border-color, #ddd)' }}
+                            angle={-45}
+                            textAnchor="end"
+                            height={50}
+                          />
+                          <YAxis
+                            tick={{ fill: 'var(--text-secondary, #666)', fontSize: 11 }}
+                            tickLine={false}
+                            axisLine={false}
+                            allowDecimals={false}
+                          />
+                          <RechartsTooltip
+                            contentStyle={{ background: 'var(--bg-primary, white)', border: '1px solid var(--border-color, #ddd)', borderRadius: '8px' }}
+                            formatter={(value) => [value, 'Frequency']}
+                          />
+                          <RechartsBar dataKey="value" fill="var(--accent-color, #4A90E2)" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 )}
               </>
-            ) : (
-              <div className="empty-state">No keystroke data available. Click Refresh to load.</div>
             )}
           </div>
         </div>

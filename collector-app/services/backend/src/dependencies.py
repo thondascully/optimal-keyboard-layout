@@ -9,7 +9,7 @@ from functools import lru_cache
 
 from .db.connection import DatabaseConnection, get_db
 from .db.repositories import SessionRepository, KeystrokeRepository, FeatureRepository
-from .services import SessionService, PatternService, FeatureService
+from .services import SessionService, PatternService, FeatureService, CoverageService, DeviationService
 
 
 # Repository factories
@@ -46,3 +46,13 @@ def get_session_service() -> SessionService:
 def get_pattern_service() -> PatternService:
     """Get pattern service instance."""
     return PatternService()
+
+
+def get_coverage_service() -> CoverageService:
+    """Get coverage service instance."""
+    return CoverageService()
+
+
+def get_deviation_service() -> DeviationService:
+    """Get deviation service instance."""
+    return DeviationService()

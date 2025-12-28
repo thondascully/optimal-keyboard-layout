@@ -98,6 +98,9 @@ def _run_migrations(cursor) -> None:
     if 'hand' not in keystroke_columns:
         cursor.execute("ALTER TABLE keystrokes ADD COLUMN hand TEXT")
 
+    if 'current_word' not in keystroke_columns:
+        cursor.execute("ALTER TABLE keystrokes ADD COLUMN current_word TEXT")
+
     # Check sessions columns
     cursor.execute("PRAGMA table_info(sessions)")
     session_columns = {row[1] for row in cursor.fetchall()}

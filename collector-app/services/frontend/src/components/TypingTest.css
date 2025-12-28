@@ -140,3 +140,58 @@
     margin-top: 1rem;
     padding: 0.5rem;
   }
+
+  /* Mini coverage indicator for trigraph mode */
+  .coverage-mini {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .coverage-mini-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .coverage-mini-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--bg-secondary, #e0e0e0);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .coverage-mini-fill {
+    height: 100%;
+    background: var(--accent, #4A90E2);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .coverage-mini-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-sub);
+    white-space: nowrap;
+  }
+
+  .coverage-mini-stats {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.8rem;
+  }
+
+  .coverage-stat-good {
+    color: var(--success-color, #4caf50);
+  }
+
+  .coverage-stat-gap {
+    color: var(--warning-color, #ff9800);
+  }

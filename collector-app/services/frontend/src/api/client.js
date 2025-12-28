@@ -141,6 +141,12 @@ export const patternsApi = {
    */
   getDigraph: (pattern) =>
     request(`/digraph/${encodeURIComponent(pattern)}`),
+
+  /**
+   * Get detailed patterns with distribution data for visualization
+   */
+  getDetailed: (mode = null) =>
+    request(mode ? `/patterns/detailed?mode=${mode}` : '/patterns/detailed'),
 };
 
 // --- Keystrokes API ---
@@ -166,6 +172,46 @@ export const generateApi = {
    * Generate typing text for a given mode
    */
   text: (mode) => request(`/generate/${mode}`),
+
+  /**
+   * Generate stratified trigraphs targeting coverage gaps
+   */
+  stratified: (count = 10) => request(`/generate/stratified?count=${count}`),
+
+  /**
+   * Generate a single stratified trigraph
+   */
+  stratifiedSingle: (fromFinger = null, toFinger = null) => {
+    let url = '/generate/stratified/single';
+    const params = [];
+    if (fromFinger) params.push(`from_finger=${fromFinger}`);
+    if (toFinger) params.push(`to_finger=${toFinger}`);
+    if (params.length) url += `?${params.join('&')}`;
+    return request(url);
+  },
+};
+
+// --- Coverage API (for PITF Model Training) ---
+
+export const coverageApi = {
+  /**
+   * Get finger pair coverage statistics
+   */
+  get: (mode = 'trigraph_test') => request(`/coverage?mode=${mode}`),
+};
+
+// --- Deviation API (for tracking finger dynamism) ---
+
+export const deviationApi = {
+  /**
+   * Get finger deviation analysis - words typed with different fingers than expected
+   */
+  get: (limit = 100) => request(`/deviations?limit=${limit}`),
+
+  /**
+   * Get patterns in finger deviations
+   */
+  getPatterns: () => request('/deviations/patterns'),
 };
 
 // --- Database API ---
@@ -215,4 +261,6 @@ export default {
   generate: generateApi,
   database: databaseApi,
   health: healthApi,
+  coverage: coverageApi,
+  deviation: deviationApi,
 };

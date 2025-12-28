@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import TypingStats from './TypingStats'
+import { coverageApi } from '../api/client'
 import './TypingTest.css'
 
 function TypingTest({ mode, onSessionComplete }) {
@@ -23,6 +24,22 @@ function TypingTest({ mode, onSessionComplete }) {
     trigraphIndex: 0
   })
 
+  // Coverage state for trigraph mode
+  const [coverage, setCoverage] = useState(null)
+
+  // Track last saved session for quick delete
+  const [lastSavedSession, setLastSavedSession] = useState(null)
+
+  // Fetch coverage data for trigraph mode
+  const fetchCoverage = async () => {
+    try {
+      const data = await coverageApi.get('trigraph_test')
+      setCoverage(data)
+    } catch (err) {
+      // Silently fail - coverage is optional
+    }
+  }
+
   // Load text when mode changes
   useEffect(() => {
     if (mode === 'trigraph_test') {
@@ -34,8 +51,10 @@ function TypingTest({ mode, onSessionComplete }) {
         trigraphIndex: 0
       })
       loadNextTrigraph()
+      fetchCoverage() // Load initial coverage
     } else {
       loadText()
+      setCoverage(null)
     }
   }, [mode])
 
@@ -202,18 +221,27 @@ function TypingTest({ mode, onSessionComplete }) {
         if (response.ok) {
           const result = await response.json()
           sessionData.session_id = result.session_id
+          // Track last saved session for quick delete
+          setLastSavedSession({
+            id: result.session_id,
+            trigraph: currentTrigraph,
+            timestamp: Date.now()
+          })
         }
       } catch (err) {
         console.error('Failed to save trigraph session:', err)
       }
-      
+
       // Update state and load next trigraph
       setTrigraphTestState(prev => ({
         ...prev,
         allKeystrokes: updatedAllKeystrokes,
         isTestRun: true // Reset for next trigraph
       }))
-      
+
+      // Refresh coverage after saving
+      fetchCoverage()
+
       // Small delay before loading next trigraph
       setTimeout(() => {
         loadNextTrigraph()
@@ -491,6 +519,27 @@ function TypingTest({ mode, onSessionComplete }) {
               {trigraphTestState.isTestRun ? 'Test Run (Practice)' : 'Real Run (Recording)'}
             </div>
           </div>
+          {coverage && coverage.summary && (
+            <div className="coverage-mini">
+              <div className="coverage-mini-progress">
+                <div className="coverage-mini-bar">
+                  <div
+                    className="coverage-mini-fill"
+                    style={{ width: `${Math.min(100, coverage.summary.trigraph_progress)}%` }}
+                  />
+                </div>
+                <span className="coverage-mini-text">
+                  {coverage.summary.total_trigraphs}/{coverage.summary.target_trigraphs}
+                </span>
+              </div>
+              <div className="coverage-mini-stats">
+                <span className="coverage-stat-good">{coverage.summary.covered_pairs} pairs</span>
+                {coverage.gaps && coverage.gaps.length > 0 && (
+                  <span className="coverage-stat-gap">{coverage.gaps.length} gaps</span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
       

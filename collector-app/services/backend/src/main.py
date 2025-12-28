@@ -23,9 +23,12 @@ from .dependencies import (
     get_pattern_service,
     get_feature_service,
     get_keystroke_repository,
+    get_coverage_service,
+    get_deviation_service,
 )
-from .services import SessionService, PatternService, FeatureService
+from .services import SessionService, PatternService, FeatureService, CoverageService, DeviationService
 from .db.repositories import KeystrokeRepository
+from .generators import generate_stratified_trigraph, generate_stratified_batch
 
 # Create FastAPI app
 app = FastAPI(
@@ -272,6 +275,128 @@ def get_digraph_details_endpoint(
         raise HTTPException(status_code=500, detail=f"Failed to get digraph details: {str(e)}")
 
 
+@app.get("/patterns/detailed")
+def get_patterns_detailed(
+    mode: Optional[str] = None,
+    service: PatternService = Depends(get_pattern_service),
+):
+    """
+    Get all digraphs and trigraphs with detailed distribution data.
+
+    Returns patterns with raw timing arrays, histogram bins, MAD filtering info,
+    and threshold visualization data.
+    """
+    try:
+        return service.get_all_patterns_detailed(mode_filter=mode)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get detailed patterns: {str(e)}")
+
+
+# --- Coverage Tracking (for PITF Model Training) ---
+
+@app.get("/coverage")
+def get_coverage(
+    mode: Optional[str] = 'trigraph_test',
+    service: CoverageService = Depends(get_coverage_service),
+):
+    """
+    Get finger pair coverage statistics.
+
+    Returns a matrix showing how many samples exist for each of the 64
+    finger pair combinations, along with gaps that need more data.
+
+    Args:
+        mode: Session mode to filter by (default: trigraph_test)
+    """
+    try:
+        return service.get_coverage(mode_filter=mode)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get coverage: {str(e)}")
+
+
+@app.get("/generate/stratified")
+def generate_stratified_trigraphs(
+    count: int = 10,
+    service: CoverageService = Depends(get_coverage_service),
+):
+    """
+    Generate trigraphs that target under-sampled finger pairs.
+
+    Uses coverage gaps to generate trigraphs that will fill in missing data.
+
+    Args:
+        count: Number of trigraphs to generate (default: 10)
+    """
+    try:
+        # Get current coverage to find gaps
+        coverage = service.get_coverage(mode_filter='trigraph_test')
+        gaps = coverage.get('gaps', [])
+
+        # Generate trigraphs targeting gaps
+        batch = generate_stratified_batch(gaps, batch_size=count)
+
+        return {
+            'trigraphs': batch,
+            'gaps_targeted': len(set((t['target_from'], t['target_to']) for t in batch if t.get('target_pair'))),
+            'total_gaps': len(gaps),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate stratified trigraphs: {str(e)}")
+
+
+@app.get("/generate/stratified/single")
+def generate_single_stratified_trigraph(
+    from_finger: Optional[str] = None,
+    to_finger: Optional[str] = None,
+    service: CoverageService = Depends(get_coverage_service),
+):
+    """
+    Generate a single trigraph, optionally targeting a specific finger pair.
+
+    If no target is specified, uses the highest-priority coverage gap.
+
+    Args:
+        from_finger: Source finger (e.g., 'left_index')
+        to_finger: Target finger (e.g., 'right_middle')
+    """
+    try:
+        if from_finger and to_finger:
+            # Use specified target
+            trigraph = generate_stratified_trigraph((from_finger, to_finger))
+            return {
+                'trigraph': trigraph,
+                'target_from': from_finger,
+                'target_to': to_finger,
+                'mode': 'targeted',
+            }
+        else:
+            # Use highest-priority gap
+            coverage = service.get_coverage(mode_filter='trigraph_test')
+            gaps = coverage.get('gaps', [])
+
+            if gaps:
+                gap = gaps[0]  # Highest priority
+                trigraph = generate_stratified_trigraph((gap['from'], gap['to']))
+                return {
+                    'trigraph': trigraph,
+                    'target_from': gap['from'],
+                    'target_to': gap['to'],
+                    'mode': 'gap_filling',
+                    'gap_priority': gap['priority'],
+                }
+            else:
+                # No gaps - generate random
+                from .generators import generate_trigraph_test
+                return {
+                    'trigraph': generate_trigraph_test(),
+                    'target_from': None,
+                    'target_to': None,
+                    'mode': 'random',
+                }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate trigraph: {str(e)}")
+
+
 # --- Keystroke Management ---
 
 @app.get("/keystrokes/data")
@@ -302,6 +427,41 @@ def delete_keystroke(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# --- Finger Deviation Analysis ---
+
+@app.get("/deviations")
+def get_finger_deviations(
+    limit: int = 100,
+    service: DeviationService = Depends(get_deviation_service),
+):
+    """
+    Get finger deviation analysis.
+
+    Shows words where the user typed overwritable letters (e, b, u, i, y)
+    with a different finger than expected, highlighting which letters deviated.
+    """
+    try:
+        return service.get_deviations(limit=limit)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get deviations: {str(e)}")
+
+
+@app.get("/deviations/patterns")
+def get_deviation_patterns(
+    service: DeviationService = Depends(get_deviation_service),
+):
+    """
+    Get patterns in finger deviations.
+
+    Analyzes what triggers deviations - e.g., which previous keys lead
+    to using a different finger for overwritable letters.
+    """
+    try:
+        return service.get_deviation_patterns()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get deviation patterns: {str(e)}")
 
 
 # --- Database Management ---
