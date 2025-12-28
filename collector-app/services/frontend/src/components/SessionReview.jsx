@@ -60,30 +60,19 @@ function SessionReview({ sessionData, onStartNew }) {
 
   // Initialize local keystrokes and crop settings
   useEffect(() => {
-    console.log('SessionReview useEffect: Running', { 
-      hasSessionData: !!sessionData,
-      hasKeystrokes: !!sessionData?.keystrokes,
-      keystrokesLength: sessionData?.keystrokes?.length 
-    })
-    
     if (!sessionData) {
-      console.warn('SessionReview: No sessionData provided')
       setLocalKeystrokes([]) // Set empty to prevent infinite loading
       return
     }
-    
+
     const sessionId = sessionData.session_id || sessionData.id
-    console.log('SessionReview: Initializing with session_id:', sessionId, 'keystrokes:', sessionData.keystrokes?.length)
-    
+
     if (sessionData.keystrokes && sessionData.keystrokes.length > 0) {
       // Check if keystrokes have IDs
       const keystrokesWithIds = [...sessionData.keystrokes]
       const missingIds = keystrokesWithIds.filter(ks => !ks.id)
-      
-      console.log(`SessionReview: ${missingIds.length} keystrokes missing IDs out of ${keystrokesWithIds.length} total`)
-      
+
       if (missingIds.length > 0 && sessionId) {
-        console.warn(`Warning: ${missingIds.length} keystrokes are missing IDs. Fetching session data...`)
         
         // Fetch the session again to get IDs
         fetch(`/api/session/${sessionId}`)
@@ -94,7 +83,6 @@ function SessionReview({ sessionData, onStartNew }) {
             return res.json()
           })
           .then(updatedSession => {
-            console.log('Fetched session data:', updatedSession)
             if (updatedSession && updatedSession.keystrokes) {
               // Match by index and update IDs
               const updated = keystrokesWithIds.map((ks, idx) => {
@@ -104,12 +92,9 @@ function SessionReview({ sessionData, onStartNew }) {
                 }
                 return ks
               })
-              const stillMissing = updated.filter(ks => !ks.id).length
-              console.log(`After fetch: ${stillMissing} keystrokes still missing IDs`)
               setLocalKeystrokes(updated)
               setCropEnd(updated.length - 1)
             } else {
-              console.warn('Fetched session has no keystrokes, using original')
               setLocalKeystrokes(keystrokesWithIds)
               setCropEnd(keystrokesWithIds.length - 1)
             }
@@ -122,18 +107,11 @@ function SessionReview({ sessionData, onStartNew }) {
           })
       } else {
         // All keystrokes have IDs, set them directly
-        console.log('All keystrokes have IDs, setting directly')
         setLocalKeystrokes(keystrokesWithIds)
         setCropEnd(keystrokesWithIds.length - 1)
       }
-    } else if (sessionData.keystrokes && sessionData.keystrokes.length === 0) {
-      // Empty keystrokes array - set it anyway
-      console.log('Empty keystrokes array')
-      setLocalKeystrokes([])
-      setCropEnd(null)
     } else {
-      console.warn('SessionReview: No keystrokes in sessionData, setting empty array')
-      // Still set empty array to prevent infinite loading
+      // Empty or no keystrokes array - set empty to prevent infinite loading
       setLocalKeystrokes([])
       setCropEnd(null)
     }
@@ -389,8 +367,6 @@ function SessionReview({ sessionData, onStartNew }) {
       return
     }
     
-    console.log('Saving annotations for session:', sessionId)
-
     setAnnotationStatus({ type: 'saving', message: 'Saving annotations...' })
 
     try {
@@ -650,7 +626,6 @@ function SessionReview({ sessionData, onStartNew }) {
 
   // Show loading state while initializing
   if (!sessionData) {
-    console.log('SessionReview: No sessionData')
     return (
       <div className="session-review fade-in">
         <div className="card">
@@ -661,16 +636,8 @@ function SessionReview({ sessionData, onStartNew }) {
     )
   }
 
-  console.log('SessionReview: sessionData exists', { 
-    hasKeystrokes: !!sessionData.keystrokes, 
-    keystrokesLength: sessionData.keystrokes?.length,
-    localKeystrokes: localKeystrokes?.length,
-    hasStats: !!stats
-  })
-
   // Show loading state while keystrokes are being initialized
   if (localKeystrokes === null && sessionData.keystrokes && sessionData.keystrokes.length > 0) {
-    console.log('SessionReview: Loading keystrokes...')
     return (
       <div className="session-review fade-in">
         <div className="card">
@@ -682,7 +649,6 @@ function SessionReview({ sessionData, onStartNew }) {
 
   // If we have no keystrokes at all, show error
   if (!localKeystrokes || localKeystrokes.length === 0) {
-    console.log('SessionReview: No localKeystrokes')
     return (
       <div className="session-review fade-in">
         <div className="card">
@@ -696,7 +662,6 @@ function SessionReview({ sessionData, onStartNew }) {
 
   // If stats is null but we have keystrokes, still render the UI with basic info
   if (!stats) {
-    console.log('SessionReview: No stats, but have keystrokes', localKeystrokes.length)
     return (
       <div className="session-review fade-in">
         <div className="card">
@@ -708,13 +673,6 @@ function SessionReview({ sessionData, onStartNew }) {
       </div>
     )
   }
-
-  console.log('SessionReview: Rendering full UI', { 
-    stats: !!stats, 
-    chartData: !!chartData,
-    displayKeystrokes: displayKeystrokes?.length,
-    localKeystrokes: localKeystrokes?.length
-  })
 
   // Safety check - if we somehow get here without stats, render a fallback
   if (!stats) {

@@ -14,10 +14,29 @@ function TypingTest({ mode, onSessionComplete }) {
   const textDisplayRef = useRef(null)
   const charRefs = useRef([])
   const cursorRef = useRef(null)
+  
+  // Trigraph test mode state
+  const [trigraphTestState, setTrigraphTestState] = useState({
+    currentTrigraph: '',
+    isTestRun: true, // true = practice run, false = real run
+    allKeystrokes: [], // Accumulate all trigraph keystrokes
+    trigraphIndex: 0
+  })
 
   // Load text when mode changes
   useEffect(() => {
-    loadText()
+    if (mode === 'trigraph_test') {
+      // Reset trigraph test state when entering this mode
+      setTrigraphTestState({
+        currentTrigraph: '',
+        isTestRun: true,
+        allKeystrokes: [],
+        trigraphIndex: 0
+      })
+      loadNextTrigraph()
+    } else {
+      loadText()
+    }
   }, [mode])
 
 
@@ -39,6 +58,31 @@ function TypingTest({ mode, onSessionComplete }) {
     }
   }
 
+  const loadNextTrigraph = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`/api/generate/trigraph_test`)
+      if (!response.ok) throw new Error('Failed to load trigraph')
+      const data = await response.json()
+      const trigraph = data.text
+      setTrigraphTestState(prev => ({
+        ...prev,
+        currentTrigraph: trigraph,
+        isTestRun: true, // Start with test run
+        trigraphIndex: prev.trigraphIndex + 1
+      }))
+      setText(trigraph)
+      setCurrentIndex(0)
+      setKeystrokes([])
+      setIsActive(false)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const handleKeyPress = (e) => {
     // Ignore if not active or no text loaded
     if (!text || currentIndex >= text.length) return
@@ -46,14 +90,22 @@ function TypingTest({ mode, onSessionComplete }) {
     // Tab to restart
     if (e.key === 'Tab') {
       e.preventDefault()
-      loadText()
+      if (mode === 'trigraph_test') {
+        loadNextTrigraph()
+      } else {
+        loadText()
+      }
       return
     }
 
     // Escape to cancel
     if (e.key === 'Escape') {
       e.preventDefault()
-      loadText()
+      if (mode === 'trigraph_test') {
+        loadNextTrigraph()
+      } else {
+        loadText()
+      }
       return
     }
 
@@ -88,8 +140,84 @@ function TypingTest({ mode, onSessionComplete }) {
 
       // Check if finished
       if (currentIndex + 1 >= text.length) {
-        finishSession([...keystrokes, newKeystroke])
+        if (mode === 'trigraph_test') {
+          handleTrigraphComplete([...keystrokes, newKeystroke])
+        } else {
+          finishSession([...keystrokes, newKeystroke])
+        }
       }
+    }
+  }
+
+  const handleTrigraphComplete = async (finalKeystrokes) => {
+    setIsActive(false)
+    
+    const { isTestRun, currentTrigraph, allKeystrokes, trigraphIndex } = trigraphTestState
+    
+    if (isTestRun) {
+      // Test run complete - switch to real run
+      setTrigraphTestState(prev => ({
+        ...prev,
+        isTestRun: false
+      }))
+      // Reset for real run
+      setCurrentIndex(0)
+      setKeystrokes([])
+      setIsActive(false)
+      // Text stays the same (same trigraph)
+    } else {
+      // Real run complete - save and move to next trigraph
+      const updatedAllKeystrokes = [...allKeystrokes, ...finalKeystrokes]
+      
+      // Save this trigraph's data
+      const sessionData = {
+        mode: 'trigraph_test',
+        text: currentTrigraph,
+        keystrokes: finalKeystrokes.map((k, i) => ({
+          ...k,
+          duration: i === 0 ? 0 : k.timestamp - finalKeystrokes[i - 1].timestamp
+        })),
+        totalTime: finalKeystrokes[finalKeystrokes.length - 1].timestamp - startTimeRef.current,
+        timestamp: Date.now(),
+        trigraph: currentTrigraph,
+        trigraphIndex: trigraphIndex
+      }
+      
+      // Save to backend
+      try {
+        const response = await fetch('/api/submit_session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: sessionData.mode,
+            raw_text: sessionData.text,
+            keystrokes: sessionData.keystrokes.map(k => ({
+              key: k.key,
+              timestamp: k.timestamp / 1000,
+              prev_key: k.prev_key
+            }))
+          })
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          sessionData.session_id = result.session_id
+        }
+      } catch (err) {
+        console.error('Failed to save trigraph session:', err)
+      }
+      
+      // Update state and load next trigraph
+      setTrigraphTestState(prev => ({
+        ...prev,
+        allKeystrokes: updatedAllKeystrokes,
+        isTestRun: true // Reset for next trigraph
+      }))
+      
+      // Small delay before loading next trigraph
+      setTimeout(() => {
+        loadNextTrigraph()
+      }, 500)
     }
   }
 
@@ -144,8 +272,7 @@ function TypingTest({ mode, onSessionComplete }) {
       }
       
       sessionData.session_id = result.session_id
-      console.log('Session saved with ID:', sessionData.session_id)
-      
+
       // Fetch the saved session to get keystroke IDs
       // Retry up to 3 times with increasing delays (database might need a moment)
       let savedSession = null
@@ -164,8 +291,6 @@ function TypingTest({ mode, onSessionComplete }) {
       }
       
       if (savedSession && savedSession.keystrokes) {
-        console.log(`Fetched ${savedSession.keystrokes.length} keystrokes from backend`)
-        
         // Match keystrokes by index (they should be in the same order)
         sessionData.keystrokes = sessionData.keystrokes.map((ks, idx) => {
           const savedKs = savedSession.keystrokes[idx]
@@ -205,8 +330,6 @@ function TypingTest({ mode, onSessionComplete }) {
         const missingIds = sessionData.keystrokes.filter(ks => !ks.id)
         if (missingIds.length > 0) {
           console.error(`Warning: ${missingIds.length} keystrokes missing IDs after matching`)
-        } else {
-          console.log('All keystrokes have IDs')
         }
       } else {
         console.error('Failed to fetch session data or no keystrokes found')
@@ -219,7 +342,6 @@ function TypingTest({ mode, onSessionComplete }) {
 
     // Always call onSessionComplete, even if save failed
     // This ensures the UI shows the session review
-    console.log('Calling onSessionComplete with session_id:', sessionData.session_id)
     onSessionComplete(sessionData)
   }
 
@@ -360,6 +482,18 @@ function TypingTest({ mode, onSessionComplete }) {
 
   return (
     <div className="card typing-test fade-in">
+      {mode === 'trigraph_test' && (
+        <div className="trigraph-test-header">
+          <div className="trigraph-display">
+            <div className="trigraph-label">Trigraph #{trigraphTestState.trigraphIndex}</div>
+            <div className="trigraph-text">{trigraphTestState.currentTrigraph}</div>
+            <div className="trigraph-run-type">
+              {trigraphTestState.isTestRun ? 'Test Run (Practice)' : 'Real Run (Recording)'}
+            </div>
+          </div>
+        </div>
+      )}
+      
       <TypingStats 
         currentIndex={currentIndex} 
         totalLength={text.length} 
@@ -381,6 +515,12 @@ function TypingTest({ mode, onSessionComplete }) {
           />
         )}
       </div>
+      
+      {mode === 'trigraph_test' && !isActive && text && (
+        <div className="trigraph-instruction">
+          Start typing to begin {trigraphTestState.isTestRun ? 'practice' : 'recording'}
+        </div>
+      )}
     </div>
   )
 }

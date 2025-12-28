@@ -2,22 +2,35 @@ version: '3.8'
 
 services:
   backend:
-    build: 
+    build:
       context: ./services/backend
     container_name: collector-backend
     volumes:
       - ./services/backend/data:/app/data
     networks:
       - collector-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
   frontend:
     build:
       context: ./services/frontend
     container_name: collector-frontend
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     networks:
       - collector-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
 
 networks:
   collector-network:

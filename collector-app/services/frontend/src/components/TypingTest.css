@@ -98,3 +98,45 @@
   .error {
     color: var(--text-error);
   }
+
+  .trigraph-test-header {
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background-color: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+  }
+
+  .trigraph-display {
+    text-align: center;
+  }
+
+  .trigraph-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 0.5rem;
+  }
+
+  .trigraph-text {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .trigraph-run-type {
+    font-size: 0.9rem;
+    color: var(--text-sub);
+    font-style: italic;
+    margin-top: 0.5rem;
+  }
+
+  .trigraph-instruction {
+    text-align: center;
+    color: var(--text-dim);
+    font-style: italic;
+    margin-top: 1rem;
+    padding: 0.5rem;
+  }

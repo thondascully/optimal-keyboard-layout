@@ -186,11 +186,129 @@
   margin: 0.25rem 0;
 }
 
+.sessions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.sessions-header h3 {
+  margin: 0;
+}
+
+.session-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.session-filter-controls label {
+  color: var(--text-sub);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.session-filter-controls select {
+  padding: 0.4rem 0.75rem;
+  background-color: var(--bg-lighter);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.session-filter-controls select:hover {
+  border-color: var(--accent);
+}
+
+.session-filter-controls select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
 .sessions-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   margin-top: 1rem;
+}
+
+.delete-session-button {
+  padding: 0.2rem 0.5rem;
+  background-color: var(--text-error);
+  color: white;
+  border: 1px solid var(--text-error);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  transition: all 0.15s ease;
+  border-radius: 3px;
+  line-height: 1;
+}
+
+.delete-session-button:hover {
+  background-color: #a00000;
+  border-color: #a00000;
+}
+
+.trigraph-test-group {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--border-dark);
+}
+
+.trigraph-test-group-header {
+  margin-bottom: 1rem;
+}
+
+.trigraph-test-group-header h4 {
+  color: var(--text-sub);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.pattern-filter-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background-color: var(--bg-gray);
+  border-radius: 4px;
+}
+
+.pattern-filter-controls label {
+  color: var(--text-sub);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.pattern-filter-controls select {
+  padding: 0.4rem 0.75rem;
+  background-color: var(--bg-lighter);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pattern-filter-controls select:hover {
+  border-color: var(--accent);
+}
+
+.pattern-filter-controls select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 .session-item {
@@ -199,13 +317,26 @@
   border: 1px solid var(--border-light);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 0.2s ease;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
 }
 
-.session-item.clickable {
+.session-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.session-content.clickable {
   cursor: pointer;
 }
 
-.session-item.clickable:hover {
+.session-item:hover .session-content.clickable {
+  opacity: 0.9;
+}
+
+.session-item:hover {
   border-color: var(--accent);
   box-shadow: 0 2px 4px rgba(74, 144, 226, 0.2);
   background-color: #F8F8F8;
@@ -240,7 +371,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
+  flex-shrink: 0;
+  z-index: 10;
+  position: relative;
 }
 
 .edit-label-button {

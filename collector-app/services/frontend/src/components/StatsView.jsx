@@ -43,6 +43,8 @@ function StatsView({ onClose }) {
   const [dataLoading, setDataLoading] = useState(false)
   const [editingLabel, setEditingLabel] = useState(null) // session id being edited
   const [labelInput, setLabelInput] = useState('')
+  const [patternFilter, setPatternFilter] = useState('combined') // 'top200', 'trigraph_test', 'combined'
+  const [sessionModeFilter, setSessionModeFilter] = useState('all') // 'all', 'top200', 'trigraph_test', etc.
 
   // Get theme-aware colors
   const getChartColors = () => {
@@ -60,23 +62,35 @@ function StatsView({ onClose }) {
     loadData()
   }, [])
 
+  // Load patterns when filter changes (for both overview and patterns tabs)
   useEffect(() => {
-    if (activeTab === 'patterns' && !patterns) {
-      // Don't auto-load patterns, wait for recalculate button
+    if (activeTab === 'overview' || activeTab === 'patterns') {
+      loadPatterns(patternFilter)
     }
-    if (activeTab === 'overview' && !patterns) {
-      // Load patterns for overview stats
-      fetch('/api/patterns')
-        .then(res => res.json())
-        .then(data => setPatterns(data))
-        .catch(err => console.error('Failed to load patterns:', err))
+  }, [patternFilter, activeTab])
+
+  const loadPatterns = async (filter = 'combined') => {
+    try {
+      const url = filter === 'combined' ? '/api/patterns' : `/api/patterns?mode=${filter}`
+      const response = await fetch(url)
+      if (response.ok) {
+        const data = await response.json()
+        setPatterns(data)
+      } else {
+        console.error('Failed to load patterns:', response.status)
+        // Set empty patterns if filter returns no data
+        setPatterns({ digraphs: [], trigraphs: [], fastest_transitions: [], slowest_transitions: [] })
+      }
+    } catch (err) {
+      console.error('Failed to load patterns:', err)
+      setPatterns({ digraphs: [], trigraphs: [], fastest_transitions: [], slowest_transitions: [] })
     }
-  }, [activeTab])
+  }
 
   const loadData = async (loadPatterns = false) => {
     try {
       const promises = [
-        fetch('/api/sessions'),
+        fetch('/api/sessions?limit=1000'), // Get all sessions
         fetch('/api/stats')
       ]
       
@@ -163,7 +177,8 @@ function StatsView({ onClose }) {
   const recalculatePatterns = async () => {
     setCalculatingPatterns(true)
     try {
-      const response = await fetch('/api/patterns')
+      const url = patternFilter === 'combined' ? '/api/patterns' : `/api/patterns?mode=${patternFilter}`
+      const response = await fetch(url)
       if (response.ok) {
         const patternsData = await response.json()
         setPatterns(patternsData)
@@ -418,6 +433,26 @@ function StatsView({ onClose }) {
 
           {patterns && (
             <>
+              <div className="card">
+                <div className="pattern-filter-controls">
+                  <label htmlFor="pattern-filter">Data Source: </label>
+                  <select
+                    id="pattern-filter"
+                    value={patternFilter}
+                    onChange={(e) => setPatternFilter(e.target.value)}
+                  >
+                    <option value="combined">Combined (All Data)</option>
+                    <option value="top200">Top 200 Only</option>
+                    <option value="trigraph_test">Trigraph Test Only</option>
+                  </select>
+                </div>
+              </div>
+              {(!patterns.digraphs || patterns.digraphs.length === 0) && (!patterns.trigraphs || patterns.trigraphs.length === 0) ? (
+                <div className="card">
+                  <div className="empty-state">No pattern data available for the selected data source.</div>
+                </div>
+              ) : (
+                <>
               {patterns.digraphs && patterns.digraphs.length > 0 && (
                 <div className="card">
                   <h3>Digraph Statistics</h3>
@@ -427,7 +462,12 @@ function StatsView({ onClose }) {
                         <div className="subsection-title">Fastest Digraphs (Top 5)</div>
                         <div className="pattern-list-compact">
                           {patterns.digraphs.slice(0, 5).map((dg, idx) => (
-                            <div key={idx} className="pattern-item-compact">
+                            <div 
+                              key={idx} 
+                              className="pattern-item-compact clickable"
+                              onClick={() => handleDigraphClick(dg)}
+                              title="Click for details"
+                            >
                               <span className="pattern-name">"{dg.pattern}"</span>
                               <span className="pattern-meta">{dg.avg_time}ms avg ({dg.count}x)</span>
                             </div>
@@ -438,7 +478,12 @@ function StatsView({ onClose }) {
                         <div className="subsection-title">Most Common Digraphs</div>
                         <div className="pattern-list-compact">
                           {[...patterns.digraphs].sort((a, b) => b.count - a.count).slice(0, 5).map((dg, idx) => (
-                            <div key={idx} className="pattern-item-compact">
+                            <div 
+                              key={idx} 
+                              className="pattern-item-compact clickable"
+                              onClick={() => handleDigraphClick(dg)}
+                              title="Click for details"
+                            >
                               <span className="pattern-name">"{dg.pattern}"</span>
                               <span className="pattern-meta">{dg.count}x ({dg.avg_time}ms avg)</span>
                             </div>
@@ -493,10 +538,15 @@ function StatsView({ onClose }) {
                         <div className="subsection-title">Fastest Trigraphs (Top 5)</div>
                         <div className="pattern-list-compact">
                           {patterns.trigraphs.slice(0, 5).map((tg, idx) => (
-                            <div key={idx} className="pattern-item-compact">
+                            <div 
+                              key={idx} 
+                              className="pattern-item-compact clickable"
+                              onClick={() => handleDigraphClick(tg)}
+                              title="Click for details"
+                            >
                               <span className="pattern-name">"{tg.pattern}"</span>
                               <span className="pattern-meta">{tg.avg_time}ms avg ({tg.count}x)</span>
-          </div>
+                            </div>
                           ))}
                         </div>
                       </div>
@@ -504,7 +554,12 @@ function StatsView({ onClose }) {
                         <div className="subsection-title">Most Common Trigraphs</div>
                         <div className="pattern-list-compact">
                           {[...patterns.trigraphs].sort((a, b) => b.count - a.count).slice(0, 5).map((tg, idx) => (
-                            <div key={idx} className="pattern-item-compact">
+                            <div 
+                              key={idx} 
+                              className="pattern-item-compact clickable"
+                              onClick={() => handleDigraphClick(tg)}
+                              title="Click for details"
+                            >
                               <span className="pattern-name">"{tg.pattern}"</span>
                               <span className="pattern-meta">{tg.count}x ({tg.avg_time}ms avg)</span>
                             </div>
@@ -549,6 +604,8 @@ function StatsView({ onClose }) {
                   </div>
                 </div>
               )}
+                </>
+              )}
             </>
           )}
         </>
@@ -560,7 +617,7 @@ function StatsView({ onClose }) {
             <div className="card">
               <div className="session-detail-header">
                 <div className="session-detail-title">
-                  <h3>Session #{selectedSession.id} Details</h3>
+                <h3>Session #{selectedSession.id} Details</h3>
                   {selectedSession.label && (
                     <span className="session-label">{selectedSession.label}</span>
                   )}
@@ -904,85 +961,121 @@ function StatsView({ onClose }) {
             </div>
           ) : (
             <div className="card">
-              <h3>Recent Sessions</h3>
+              <div className="sessions-header">
+                <h3>Recent Sessions</h3>
+                <div className="session-filter-controls">
+                  <label htmlFor="session-mode-filter">Filter by Mode: </label>
+                  <select
+                    id="session-mode-filter"
+                    value={sessionModeFilter}
+                    onChange={(e) => setSessionModeFilter(e.target.value)}
+                  >
+                    <option value="all">All Modes</option>
+                    {[...new Set(sessions.map(s => s.mode))].sort().map(mode => (
+                      <option key={mode} value={mode}>{mode}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
               <div className="sessions-list">
                 {sessions.length === 0 ? (
                   <p className="empty-state">No sessions found</p>
                 ) : (
-                  sessions.map(session => (
+                  (() => {
+                    // Filter sessions by selected mode
+                    const filteredSessions = sessionModeFilter === 'all' 
+                      ? sessions 
+                      : sessions.filter(s => s.mode === sessionModeFilter)
+                    
+                    if (filteredSessions.length === 0) {
+                      return <p className="empty-state">No sessions found for mode: {sessionModeFilter}</p>
+                    }
+                    
+                    return (
+                      <>
+                        {filteredSessions.map(session => (
                     <div 
                       key={session.id} 
-                      className="session-item clickable"
-                      onClick={() => handleSessionClick(session.id)}
+                      className="session-item"
                     >
-                      <div className="session-info">
-                        <div className="session-id-row">
-                          <span className="session-id">Session #{session.id}</span>
-                          {session.label && (
-                            <span className="session-label">{session.label}</span>
-                          )}
+                      <div 
+                        className="session-content clickable"
+                        onClick={() => handleSessionClick(session.id)}
+                      >
+                        <div className="session-info">
+                          <div className="session-id-row">
+                            <span className="session-id">Session #{session.id}</span>
+                            {session.label && (
+                              <span className="session-label">{session.label}</span>
+                            )}
+                          </div>
+                          <div className="session-mode">{session.mode}</div>
+                          <div className="session-date">
+                            {new Date(session.timestamp * 1000).toLocaleString()}
+                          </div>
                         </div>
-                        <div className="session-mode">{session.mode}</div>
-                        <div className="session-date">
-                          {new Date(session.timestamp * 1000).toLocaleString()}
-                        </div>
-                        <div className="session-actions">
-                          {editingLabel === session.id ? (
-                            <div className="label-edit-controls">
-                              <input
-                                type="text"
-                                value={labelInput}
-                                onChange={(e) => setLabelInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleSaveLabel(session.id)
-                                  } else if (e.key === 'Escape') {
-                                    setEditingLabel(null)
-                                    setLabelInput('')
-                                  }
-                                }}
-                                placeholder="Label..."
-                                className="label-input"
-                                autoFocus
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                              <button onClick={(e) => {
-                                e.stopPropagation()
-                                handleSaveLabel(session.id)
-                              }} className="label-save-btn">✓</button>
-                              <button onClick={(e) => {
-                                e.stopPropagation()
-                                setEditingLabel(null)
-                                setLabelInput('')
-                              }} className="label-cancel-btn">×</button>
-                            </div>
-                          ) : (
-                            <button
-                              className="edit-label-button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setEditingLabel(session.id)
-                                setLabelInput(session.label || '')
-                              }}
-                              title="Edit label"
-                            >
-                              ✎
-                            </button>
-                          )}
-                          <button 
-                            className="delete-session-button"
-                            onClick={(e) => handleDeleteSession(session.id, e)}
-                            title="Delete session"
-                          >
-                            ×
-                          </button>
+                        <div className="session-text-preview">
+                          {session.raw_text?.substring(0, 50)}...
                         </div>
                       </div>
-                      <div className="session-text-preview">
-                        {session.raw_text?.substring(0, 50)}...
+                      <div className="session-actions">
+                        {editingLabel === session.id ? (
+                          <div className="label-edit-controls">
+                            <input
+                              type="text"
+                              value={labelInput}
+                              onChange={(e) => setLabelInput(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleSaveLabel(session.id)
+                                } else if (e.key === 'Escape') {
+                                  setEditingLabel(null)
+                                  setLabelInput('')
+                                }
+                              }}
+                              placeholder="Label..."
+                              className="label-input"
+                              autoFocus
+                            />
+                            <button onClick={(e) => {
+                              e.stopPropagation()
+                              handleSaveLabel(session.id)
+                            }} className="label-save-btn">✓</button>
+                            <button onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingLabel(null)
+                              setLabelInput('')
+                            }} className="label-cancel-btn">×</button>
+                          </div>
+                        ) : (
+                          <button
+                            className="edit-label-button"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setEditingLabel(session.id)
+                              setLabelInput(session.label || '')
+                            }}
+                            title="Edit label"
+                          >
+                            ✎
+                          </button>
+                        )}
+                        <button 
+                          className="delete-session-button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            handleDeleteSession(session.id, e)
+                          }}
+                          title="Delete session"
+                        >
+                          ×
+                        </button>
                       </div>
                     </div>
-                  ))
+                        ))}
+                      </>
+                    )
+                  })()
                 )}
               </div>
             </div>
@@ -1078,6 +1171,20 @@ function StatsView({ onClose }) {
 
       {activeTab === 'patterns' && (
         <>
+          <div className="card">
+            <div className="pattern-filter-controls">
+              <label htmlFor="pattern-filter-patterns">Data Source: </label>
+              <select
+                id="pattern-filter-patterns"
+                value={patternFilter}
+                onChange={(e) => setPatternFilter(e.target.value)}
+              >
+                <option value="combined">Combined (All Data)</option>
+                <option value="top200">Top 200 Only</option>
+                <option value="trigraph_test">Trigraph Test Only</option>
+              </select>
+            </div>
+          </div>
           {calculatingPatterns ? (
             <div className="card">
               <div className="loading">Calculating patterns...</div>
@@ -1465,4 +1572,5 @@ function StatsView({ onClose }) {
 }
 
 export default StatsView
+
 

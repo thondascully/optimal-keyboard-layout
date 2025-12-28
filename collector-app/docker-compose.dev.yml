@@ -9,6 +9,13 @@ services:
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
     environment:
       - ENV=development
+    # Override production health check for dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   frontend:
     build:
@@ -20,3 +27,9 @@ services:
       - "3000:5173"
     environment:
       - VITE_API_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    # Disable health check for dev (vite dev server)
+    healthcheck:
+      disable: true

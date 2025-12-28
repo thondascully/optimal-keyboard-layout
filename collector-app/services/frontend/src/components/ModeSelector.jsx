@@ -18,6 +18,10 @@ const MODES = [
     id: 'calibration', 
     label: 'Calibration'
   },
+  { 
+    id: 'trigraph_test', 
+    label: 'Trigraph Test'
+  },
 ]
 
 const MODE_INFO = {
@@ -44,6 +48,12 @@ const MODE_INFO = {
     whenToUse: 'Use for pure biomechanical calibration data with no linguistic patterns.',
     dataNeed: 'Critical for understanding raw finger movement patterns without any word context.',
     recommendation: 'Use occasionally to establish baseline biomechanical performance.'
+  },
+  trigraph_test: {
+    description: 'One trigraph at a time with test and real runs',
+    whenToUse: 'Use to test specific trigraph performance with preparation time. Shows one trigraph, gives you a practice run, then records a real run.',
+    dataNeed: 'Useful for testing how preparation affects typing speed on specific letter combinations.',
+    recommendation: 'Use to identify fast vs slow trigraphs and understand biomechanical differences.'
   }
 }
 

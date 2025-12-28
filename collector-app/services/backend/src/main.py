@@ -1,22 +1,40 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile, Body
-from fastapi.middleware.cors import CORSMiddleware
-from typing import Optional
+"""
+FastAPI application for the Collector API.
+
+This is a thin API layer that delegates business logic to services.
+"""
+
+import os
+import shutil
 import time
+from typing import Optional
+from urllib.parse import unquote
 
-from .database import (
-    init_db, save_session, get_session, get_all_sessions,
-    update_session_fingers, get_stats, delete_session_db,
-    delete_keystroke_db, get_digraph_details, get_all_keystrokes_data,
-    update_session_label
-)
-from .generators import generate_text
-from .features import compute_session_features, save_features_to_db
-from .pattern_analysis import analyze_patterns
+from fastapi import FastAPI, HTTPException, File, UploadFile, Depends
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+
+from .db.schema import init_schema
+from .db.connection import get_db
 from .models import SessionData, FingerAnnotationsUpdate, SessionLabelUpdate
+from .generators import generate_text, get_available_modes
+from .dependencies import (
+    get_session_service,
+    get_pattern_service,
+    get_feature_service,
+    get_keystroke_repository,
+)
+from .services import SessionService, PatternService, FeatureService
+from .db.repositories import KeystrokeRepository
 
-app = FastAPI(title="Collector API", version="1.0.0")
+# Create FastAPI app
+app = FastAPI(
+    title="Collector API",
+    version="2.0.0",
+    description="API for collecting and analyzing typing data",
+)
 
-
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:5173"],
@@ -25,39 +43,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 @app.on_event("startup")
 def startup_event():
-    init_db()
+    """Initialize database on startup."""
+    init_schema()
+
+
+# --- Health & Info Endpoints ---
 
 @app.get("/")
 def read_root():
+    """API information and available endpoints."""
     return {
         "message": "Collector API",
-        "version": "1.0.0",
-        "endpoints": [
-            "/generate/{mode}", 
-            "/submit_session", 
-            "/session/{session_id}",
-            "/update_fingers",
-            "/compute_features/{session_id}",
-            "/patterns",
-            "/digraph/{pattern}",
-            "/keystroke/{keystroke_id}",
-            "/database/download",
-            "/database/upload",
-            "/health"
-        ]
+        "version": "2.0.0",
+        "endpoints": get_available_modes(),
     }
+
 
 @app.get("/health")
 def health_check():
+    """Health check endpoint."""
     return {"status": "healthy", "timestamp": time.time()}
+
+
+# --- Text Generation ---
 
 @app.get("/generate/{mode}")
 def generate_typing_text(mode: str):
     """
-    Generate text for typing practice based on mode.
-    Modes: top200, trigraphs, nonsense, calibration
+    Generate text for typing practice.
+
+    Args:
+        mode: One of 'top200', 'trigraphs', 'nonsense', 'calibration', 'trigraph_test'
     """
     try:
         text = generate_text(mode)
@@ -65,91 +84,79 @@ def generate_typing_text(mode: str):
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
+# --- Session Management ---
+
 @app.post("/submit_session")
-def submit_session(data: SessionData):
-    """
-    Save a completed typing session to the database.
-    """
+def submit_session(
+    data: SessionData,
+    service: SessionService = Depends(get_session_service),
+):
+    """Save a completed typing session."""
     try:
-        session_id = save_session(
+        session_id = service.create_session(
             mode=data.mode,
             raw_text=data.raw_text,
-            keystrokes=[k.dict() for k in data.keystrokes]
+            keystrokes=[k.dict() for k in data.keystrokes],
         )
         return {
             "status": "saved",
             "session_id": session_id,
-            "keystroke_count": len(data.keystrokes)
+            "keystroke_count": len(data.keystrokes),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save session: {str(e)}")
 
+
 @app.get("/session/{session_id}")
-def get_session_data(session_id: int):
-    """
-    Retrieve a session by ID.
-    """
-    session = get_session(session_id)
+def get_session_data(
+    session_id: int,
+    service: SessionService = Depends(get_session_service),
+):
+    """Retrieve a session by ID."""
+    session = service.get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return session
 
+
 @app.get("/sessions")
-def list_sessions(limit: int = 50):
-    """
-    List all sessions (without full keystroke data).
-    """
-    sessions = get_all_sessions()
-    return {
-        "total": len(sessions),
-        "sessions": sessions[:limit]
-    }
+def list_sessions(
+    limit: int = 50,
+    service: SessionService = Depends(get_session_service),
+):
+    """List all sessions (without full keystroke data)."""
+    sessions = service.get_all_sessions(limit=limit)
+    return {"total": len(sessions), "sessions": sessions}
 
-@app.get("/stats")
-def get_stats_endpoint():
-    """
-    Get database statistics.
-    """
-    try:
-        return get_stats()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
-
-@app.get("/keystrokes/data")
-def get_keystrokes_data(limit: int = 1000, offset: int = 0):
-    """
-    Get all keystrokes data with finger, hand, and session information.
-    Useful for data validation and viewing.
-    """
-    try:
-        return get_all_keystrokes_data(limit=limit, offset=offset)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get keystrokes data: {str(e)}")
 
 @app.put("/session/{session_id}/label")
-def update_session_label_endpoint(session_id: int, label_data: SessionLabelUpdate):
-    """
-    Update the label for a session.
-    Body: {"label": "string"} or {"label": null} to remove label
-    """
+def update_session_label_endpoint(
+    session_id: int,
+    label_data: SessionLabelUpdate,
+    service: SessionService = Depends(get_session_service),
+):
+    """Update the label for a session."""
     try:
         label_text = label_data.label if label_data.label else None
-        success = update_session_label(session_id, label_text)
+        success = service.update_label(session_id, label_text)
         if not success:
             raise HTTPException(status_code=404, detail="Session not found")
         return {"status": "updated", "session_id": session_id, "label": label_text}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update session label: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update label: {str(e)}")
+
 
 @app.delete("/session/{session_id}")
-def delete_session(session_id: int):
-    """
-    Delete a session and its keystrokes (cascades to features).
-    """
+def delete_session(
+    session_id: int,
+    service: SessionService = Depends(get_session_service),
+):
+    """Delete a session and its keystrokes."""
     try:
-        result = delete_session_db(session_id)
+        result = service.delete_session(session_id)
         if not result:
             raise HTTPException(status_code=404, detail="Session not found")
         return {"status": "deleted", "session_id": session_id}
@@ -158,110 +165,136 @@ def delete_session(session_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# --- Finger Annotations & Features ---
+
 @app.post("/update_fingers")
-def update_fingers(data: FingerAnnotationsUpdate):
+def update_fingers(
+    data: FingerAnnotationsUpdate,
+    service: SessionService = Depends(get_session_service),
+):
     """
-    Update finger and hand annotations for keystrokes in a session.
-    After updating, automatically computes biomechanical features.
+    Update finger annotations for keystrokes in a session.
+    Automatically computes biomechanical features after updating.
     """
     try:
-        # Update finger annotations
-        update_session_fingers(
+        result = service.update_finger_annotations(
             session_id=data.session_id,
-            finger_annotations=[ann.dict() for ann in data.annotations]
+            annotations=[ann.dict() for ann in data.annotations],
+            compute_features=True,
         )
-        
-        # Retrieve updated session
-        session = get_session(data.session_id)
-        if not session:
-            raise HTTPException(status_code=404, detail="Session not found")
-        
-        # Compute and save features
-        features = compute_session_features(session['keystrokes'])
-        save_features_to_db(data.session_id, session['keystrokes'], features)
-        
-        return {
-            "status": "updated",
-            "session_id": data.session_id,
-            "annotations_count": len(data.annotations)
-        }
+        return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update fingers: {str(e)}")
 
+
 @app.post("/compute_features/{session_id}")
-def compute_features(session_id: int):
+def compute_features(
+    session_id: int,
+    session_service: SessionService = Depends(get_session_service),
+    feature_service: FeatureService = Depends(get_feature_service),
+):
     """
     Compute and save biomechanical features for a session.
     Requires finger annotations to be complete.
     """
     try:
-        session = get_session(session_id)
+        session = session_service.get_session(session_id)
         if not session:
             raise HTTPException(status_code=404, detail="Session not found")
-        
-        # Check if all keystrokes have finger annotations
-        missing_annotations = [
-            i for i, ks in enumerate(session['keystrokes'])
-            if not ks.get('finger') or not ks.get('hand')
-        ]
-        
-        if missing_annotations:
+
+        # Check for missing annotations
+        missing = feature_service.check_annotations_complete(session['keystrokes'])
+        if missing:
             return {
                 "status": "incomplete",
-                "message": f"Missing finger annotations for {len(missing_annotations)} keystrokes",
-                "missing_indices": missing_annotations
+                "message": f"Missing finger annotations for {len(missing)} keystrokes",
+                "missing_indices": missing,
             }
-        
+
         # Compute features
-        features = compute_session_features(session['keystrokes'])
-        save_features_to_db(session_id, session['keystrokes'], features)
-        
+        features_count = feature_service.compute_and_save_for_session(
+            session_id, session['keystrokes']
+        )
         return {
             "status": "computed",
             "session_id": session_id,
-            "features_count": len([f for f in features if f is not None])
+            "features_count": features_count,
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to compute features: {str(e)}")
 
+
+# --- Statistics & Patterns ---
+
+@app.get("/stats")
+def get_stats_endpoint(service: SessionService = Depends(get_session_service)):
+    """Get database statistics."""
+    try:
+        return service.get_stats()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")
+
+
 @app.get("/patterns")
-def get_patterns():
+def get_patterns(
+    mode: Optional[str] = None,
+    service: PatternService = Depends(get_pattern_service),
+):
     """
     Get pattern analysis (digraphs, trigraphs, fastest/slowest transitions).
+
+    Args:
+        mode: Optional filter by session mode
     """
     try:
-        patterns = analyze_patterns()
-        return patterns
+        return service.analyze_patterns(mode_filter=mode)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to analyze patterns: {str(e)}")
 
+
 @app.get("/digraph/{pattern}")
-def get_digraph_details_endpoint(pattern: str):
-    """
-    Get detailed information about a specific digraph.
-    Pattern should be 2 characters (e.g., "th", "er")
-    """
-    from urllib.parse import unquote
-    
-    # Decode URL-encoded pattern
+def get_digraph_details_endpoint(
+    pattern: str,
+    repo: KeystrokeRepository = Depends(get_keystroke_repository),
+):
+    """Get detailed information about a specific digraph."""
     pattern = unquote(pattern)
-    
+
     if len(pattern) != 2:
-        raise HTTPException(status_code=400, detail="Digraph pattern must be exactly 2 characters")
-    
+        raise HTTPException(status_code=400, detail="Digraph must be exactly 2 characters")
+
     try:
-        return get_digraph_details(pattern)
+        return repo.get_digraph_details(pattern)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get digraph details: {str(e)}")
 
-@app.delete("/keystroke/{keystroke_id}")
-def delete_keystroke(keystroke_id: int):
-    """
-    Delete a keystroke and cascade delete to features.
-    This will exclude the keystroke from all pattern calculations.
-    """
+
+# --- Keystroke Management ---
+
+@app.get("/keystrokes/data")
+def get_keystrokes_data(
+    limit: int = 1000,
+    offset: int = 0,
+    repo: KeystrokeRepository = Depends(get_keystroke_repository),
+):
+    """Get all keystrokes data with finger, hand, and session information."""
     try:
-        result = delete_keystroke_db(keystroke_id)
+        return repo.get_all_with_session_info(limit=limit, offset=offset)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get keystrokes data: {str(e)}")
+
+
+@app.delete("/keystroke/{keystroke_id}")
+def delete_keystroke(
+    keystroke_id: int,
+    repo: KeystrokeRepository = Depends(get_keystroke_repository),
+):
+    """Delete a keystroke and cascade delete to features."""
+    try:
+        result = repo.delete(keystroke_id)
         if not result:
             raise HTTPException(status_code=404, detail="Keystroke not found")
         return {"status": "deleted", "keystroke_id": keystroke_id}
@@ -270,46 +303,38 @@ def delete_keystroke(keystroke_id: int):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+# --- Database Management ---
+
 @app.get("/database/download")
 def download_database():
-    """
-    Download the database file.
-    """
-    from fastapi.responses import FileResponse
-    from .database import get_database_path
-    import os
-    
-    db_path = get_database_path()
+    """Download the database file."""
+    db_path = get_db().get_path()
     if not os.path.exists(db_path):
         raise HTTPException(status_code=404, detail="Database file not found")
-    
+
     return FileResponse(
         db_path,
         media_type="application/x-sqlite3",
-        filename="typing_data.db"
+        filename="typing_data.db",
     )
+
 
 @app.post("/database/upload")
 def upload_database(file: UploadFile = File(...)):
-    """
-    Upload and replace the database file.
-    """
-    from .database import get_database_path
-    import shutil
-    import os
-    
-    db_path = get_database_path()
-    
+    """Upload and replace the database file."""
+    db_path = get_db().get_path()
+
     try:
         # Backup current database
         if os.path.exists(db_path):
             backup_path = f"{db_path}.backup"
             shutil.copy2(db_path, backup_path)
-        
+
         # Save uploaded file
         with open(db_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        
+
         return {"status": "uploaded", "message": "Database uploaded successfully"}
     except Exception as e:
         # Restore backup if upload failed
