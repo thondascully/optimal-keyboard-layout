@@ -275,6 +275,23 @@ def get_digraph_details_endpoint(
         raise HTTPException(status_code=500, detail=f"Failed to get digraph details: {str(e)}")
 
 
+@app.get("/trigraph/{pattern}")
+def get_trigraph_details_endpoint(
+    pattern: str,
+    repo: KeystrokeRepository = Depends(get_keystroke_repository),
+):
+    """Get detailed information about a specific trigraph."""
+    pattern = unquote(pattern)
+
+    if len(pattern) != 3:
+        raise HTTPException(status_code=400, detail="Trigraph must be exactly 3 characters")
+
+    try:
+        return repo.get_trigraph_details(pattern)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get trigraph details: {str(e)}")
+
+
 @app.get("/patterns/detailed")
 def get_patterns_detailed(
     mode: Optional[str] = None,
@@ -427,6 +444,50 @@ def delete_keystroke(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/session/{session_id}/crop")
+def crop_session(
+    session_id: int,
+    crop_start: int,
+    crop_end: int,
+    repo: KeystrokeRepository = Depends(get_keystroke_repository),
+):
+    """
+    Crop a session's keystrokes to only keep those between start and end indices.
+    Deletes keystrokes outside the range and updates prev_key for the new first keystroke.
+    """
+    try:
+        keystrokes = repo.get_by_session(session_id)
+        if not keystrokes:
+            raise HTTPException(status_code=404, detail="Session not found or has no keystrokes")
+
+        # Validate indices
+        if crop_start < 0 or crop_end < crop_start or crop_end >= len(keystrokes):
+            raise HTTPException(status_code=400, detail="Invalid crop indices")
+
+        # Get IDs of keystrokes to delete (before start and after end)
+        ids_to_delete = []
+        for i, ks in enumerate(keystrokes):
+            if i < crop_start or i > crop_end:
+                ids_to_delete.append(ks['id'])
+
+        # Delete keystrokes outside range
+        deleted_count = 0
+        for ks_id in ids_to_delete:
+            if repo.delete(ks_id):
+                deleted_count += 1
+
+        return {
+            "status": "cropped",
+            "session_id": session_id,
+            "deleted_count": deleted_count,
+            "remaining_count": crop_end - crop_start + 1,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to crop session: {str(e)}")
 
 
 # --- Finger Deviation Analysis ---

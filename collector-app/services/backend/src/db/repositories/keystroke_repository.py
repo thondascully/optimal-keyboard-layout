@@ -341,6 +341,99 @@ class KeystrokeRepository:
                 "occurrences": len(occurrences),
             }
 
+    def get_trigraph_details(self, pattern: str) -> Dict:
+        """
+        Get detailed information about a specific trigraph.
+
+        Args:
+            pattern: Three-character trigraph (e.g., 'the')
+
+        Returns:
+            Dict with pattern info, words, distribution, raw_times
+        """
+        if len(pattern) != 3:
+            raise ValueError("Trigraph pattern must be exactly 3 characters")
+
+        from statistics import median
+
+        with self.db.cursor() as c:
+            # Find all occurrences of this trigraph (3 consecutive keystrokes)
+            c.execute(
+                """SELECT k1.key_char, k2.key_char, k3.key_char,
+                          k1.timestamp, k3.timestamp,
+                          s.raw_text, k1.session_id
+                   FROM keystrokes k1
+                   JOIN keystrokes k2 ON k2.session_id = k1.session_id
+                       AND k2.id = (
+                           SELECT MIN(id) FROM keystrokes
+                           WHERE session_id = k1.session_id AND id > k1.id
+                       )
+                   JOIN keystrokes k3 ON k3.session_id = k1.session_id
+                       AND k3.id = (
+                           SELECT MIN(id) FROM keystrokes
+                           WHERE session_id = k1.session_id AND id > k2.id
+                       )
+                   JOIN sessions s ON k1.session_id = s.id
+                   WHERE k1.key_char = ? AND k2.key_char = ? AND k3.key_char = ?
+                   ORDER BY k1.timestamp""",
+                (pattern[0], pattern[1], pattern[2])
+            )
+
+            occurrences = c.fetchall()
+
+            if not occurrences:
+                return {
+                    "pattern": pattern,
+                    "words": [],
+                    "distribution": None,
+                    "raw_times": [],
+                    "avg_time": 0,
+                    "threshold_low": None,
+                    "threshold_high": None,
+                    "occurrences": 0,
+                }
+
+            # Extract words and times
+            words = set()
+            times = []
+
+            for row in occurrences:
+                text = row[5]
+                for word in text.split():
+                    if pattern in word.lower():
+                        words.add(word)
+
+                duration = row[4] - row[3]  # k3.timestamp - k1.timestamp
+                if 0 < duration < 5000:  # Filter outliers
+                    times.append(duration)
+
+            # Calculate MAD thresholds
+            threshold_low = None
+            threshold_high = None
+            if len(times) >= 3:
+                med = median(times)
+                deviations = [abs(t - med) for t in times]
+                mad = median(deviations)
+                if mad > 0:
+                    threshold_low = med - 3 * mad
+                    threshold_high = med + 3 * mad
+
+            # Create distribution bins
+            distribution = self._create_distribution(times)
+
+            avg_time = sum(times) / len(times) if times else 0
+
+            return {
+                "pattern": pattern,
+                "words": list(words)[:50],
+                "distribution": distribution,
+                "raw_times": sorted(times),
+                "avg_time": round(avg_time, 1),
+                "threshold_low": round(threshold_low, 1) if threshold_low else None,
+                "threshold_high": round(threshold_high, 1) if threshold_high else None,
+                "occurrences": len(occurrences),
+            }
+
     def _create_distribution(self, times: List[float]) -> Optional[Dict]:
         """Create histogram distribution from timing data."""
         if not times:

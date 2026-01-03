@@ -58,7 +58,7 @@ FINGER_ASSIGNMENTS = {
 
 # Letters that can be typed with different fingers depending on context
 # These are manually annotated and should NOT be overwritten by migration scripts
-OVERWRITABLE_LETTERS = {'e', 'b', 'u', 'i', 'y'}
+OVERWRITABLE_LETTERS = {'e', 'b', 'u', 'i', 'y', 'k'}
 
 # Hand assignments (derived from finger assignments)
 HAND_ASSIGNMENTS = {

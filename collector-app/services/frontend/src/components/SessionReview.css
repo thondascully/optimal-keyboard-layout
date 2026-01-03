@@ -170,7 +170,54 @@
     background-color: var(--bg-gray);
     border-color: var(--border-dark);
   }
-  
+
+  .crop-button.preview {
+    background-color: var(--bg-lighter);
+    color: var(--text-sub);
+  }
+
+  .crop-button.save {
+    background-color: var(--accent, #4A90E2);
+    color: white;
+    border-color: var(--accent, #4A90E2);
+  }
+
+  .crop-button.save:hover {
+    background-color: #3a7bc8;
+    border-color: #3a7bc8;
+  }
+
+  .crop-status {
+    margin-top: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+
+  .crop-status.success {
+    background-color: rgba(76, 175, 80, 0.15);
+    color: #4caf50;
+    border: 1px solid rgba(76, 175, 80, 0.3);
+  }
+
+  .crop-status.error {
+    background-color: rgba(244, 67, 54, 0.15);
+    color: #f44336;
+    border: 1px solid rgba(244, 67, 54, 0.3);
+  }
+
+  .crop-status.info {
+    background-color: rgba(33, 150, 243, 0.15);
+    color: #2196f3;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+  }
+
+  .crop-status.loading {
+    background-color: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
   .word-context {
     color: var(--text-sub);
     font-size: 0.85rem;

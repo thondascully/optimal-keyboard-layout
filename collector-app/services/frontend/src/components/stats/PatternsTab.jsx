@@ -5,6 +5,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { patternsApi } from '../../api/client';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell, ReferenceLine } from 'recharts';
+import { classifyDigraph } from '../../utils/fingerMapping';
 import './PatternsTab.css';
 
 function PatternsTab() {
@@ -67,7 +68,9 @@ function PatternsTab() {
     setLoadingDetails(true);
 
     try {
-      const response = await fetch(`/api/digraph/${encodeURIComponent(pattern.pattern)}`);
+      // Use digraph or trigraph endpoint based on pattern length
+      const endpoint = pattern.pattern.length === 2 ? 'digraph' : 'trigraph';
+      const response = await fetch(`/api/${endpoint}/${encodeURIComponent(pattern.pattern)}`);
       if (response.ok) {
         const details = await response.json();
         setPatternDetails(details);
@@ -227,17 +230,29 @@ function PatternsTab() {
 
       {/* Pattern List */}
       <div className="patterns-list">
-        {currentPatterns.slice(0, 150).map((p, idx) => (
-          <div
-            key={idx}
-            className={`pattern-row ${selectedPattern?.pattern === p.pattern ? 'selected' : ''} speed-${getSpeedIndicator(p, currentPatterns)}`}
-            onClick={() => handlePatternClick(p)}
-          >
-            <span className="pattern-name">{p.pattern}</span>
-            <span className="pattern-time">{p.avg_time}ms</span>
-            <span className="pattern-count">{p.count}x</span>
-          </div>
-        ))}
+        {currentPatterns.slice(0, 150).map((p, idx) => {
+          const archetype = viewMode === 'digraphs' ? classifyDigraph(p.pattern) : null;
+          return (
+            <div
+              key={idx}
+              className={`pattern-row ${selectedPattern?.pattern === p.pattern ? 'selected' : ''} speed-${getSpeedIndicator(p, currentPatterns)}`}
+              onClick={() => handlePatternClick(p)}
+            >
+              <span className="pattern-name">{p.pattern}</span>
+              {archetype && (
+                <span
+                  className="pattern-archetype"
+                  style={{ backgroundColor: archetype.color }}
+                  title={archetype.description}
+                >
+                  {archetype.label}
+                </span>
+              )}
+              <span className="pattern-time">{p.avg_time}ms</span>
+              <span className="pattern-count">{p.count}x</span>
+            </div>
+          );
+        })}
         {currentPatterns.length > 150 && (
           <div className="more-patterns">+ {currentPatterns.length - 150} more</div>
         )}
@@ -250,6 +265,18 @@ function PatternsTab() {
             <div className="detail-title">
               <span className="detail-pattern">{selectedPattern.pattern}</span>
               <span className="detail-type">{selectedPattern.pattern.length === 2 ? 'digraph' : 'trigraph'}</span>
+              {selectedPattern.pattern.length === 2 && (() => {
+                const arch = classifyDigraph(selectedPattern.pattern);
+                return (
+                  <span
+                    className="detail-archetype"
+                    style={{ backgroundColor: arch.color }}
+                    title={arch.description}
+                  >
+                    {arch.description}
+                  </span>
+                );
+              })()}
             </div>
             <button className="close-detail" onClick={() => { setSelectedPattern(null); setPatternDetails(null); }}>Close</button>
           </div>

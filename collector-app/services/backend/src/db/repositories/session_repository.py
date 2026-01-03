@@ -221,6 +221,34 @@ class SessionRepository:
             c.execute("SELECT COUNT(*) FROM keystroke_features")
             total_features = c.fetchone()[0] or 0
 
+            # Finger-wise keystroke counts (for progress tracking)
+            c.execute("""
+                SELECT
+                    COALESCE(kf.finger_to, 'unknown') as finger,
+                    COUNT(*) as count
+                FROM keystroke_features kf
+                WHERE kf.finger_to IS NOT NULL
+                GROUP BY kf.finger_to
+            """)
+            finger_counts = {row[0]: row[1] for row in c.fetchall()}
+
+            # Also count from keystroke annotations for non-feature keystrokes
+            c.execute("""
+                SELECT
+                    COALESCE(finger, 'unknown') as finger,
+                    COUNT(*) as count
+                FROM keystrokes
+                WHERE finger IS NOT NULL AND finger != ''
+                GROUP BY finger
+            """)
+            for row in c.fetchall():
+                finger = row[0]
+                count = row[1]
+                if finger in finger_counts:
+                    finger_counts[finger] = max(finger_counts[finger], count)
+                else:
+                    finger_counts[finger] = count
+
             return {
                 "total_sessions": session_count,
                 "total_keystrokes": keystroke_count,
@@ -233,4 +261,5 @@ class SessionRepository:
                 "unique_digraphs": unique_digraphs,
                 "sessions_with_features": sessions_with_features,
                 "total_features": total_features,
+                "finger_counts": finger_counts,
             }

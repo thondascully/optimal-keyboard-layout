@@ -24,7 +24,7 @@ ChartJS.register(
   Filler
 )
 import { getDefaultFinger, getDefaultHand } from '../utils/fingerMapping'
-import { AMBIGUOUS_KEYS, FINGER_OPTIONS } from '../utils/constants'
+import { getEnabledOverwritableKeys, FINGER_OPTIONS } from '../utils/constants'
 import './SessionReview.css'
 
 ChartJS.register(
@@ -40,10 +40,18 @@ ChartJS.register(
 function SessionReview({ sessionData, onStartNew }) {
   const [fingerAnnotations, setFingerAnnotations] = useState({})
   const [annotationStatus, setAnnotationStatus] = useState(null)
-  const [cropStart, setCropStart] = useState(0)
-  const [cropEnd, setCropEnd] = useState(null)
+  // Pending crop values (not applied yet - just for input display)
+  const [pendingCropStart, setPendingCropStart] = useState(0)
+  const [pendingCropEnd, setPendingCropEnd] = useState(null)
+  // Applied crop values (used for displayKeystrokes)
+  const [appliedCropStart, setAppliedCropStart] = useState(0)
+  const [appliedCropEnd, setAppliedCropEnd] = useState(null)
   const [localKeystrokes, setLocalKeystrokes] = useState(null)
   const [error, setError] = useState(null)
+  const [cropStatus, setCropStatus] = useState(null)
+
+  // Get enabled overwritable keys (refreshed on each render to pick up settings changes)
+  const ambiguousKeys = getEnabledOverwritableKeys()
 
   // Show error if one occurred
   if (error) {
@@ -67,13 +75,20 @@ function SessionReview({ sessionData, onStartNew }) {
 
     const sessionId = sessionData.session_id || sessionData.id
 
+    const initCropValues = (length) => {
+      setPendingCropStart(0)
+      setPendingCropEnd(length - 1)
+      setAppliedCropStart(0)
+      setAppliedCropEnd(length - 1)
+    }
+
     if (sessionData.keystrokes && sessionData.keystrokes.length > 0) {
       // Check if keystrokes have IDs
       const keystrokesWithIds = [...sessionData.keystrokes]
       const missingIds = keystrokesWithIds.filter(ks => !ks.id)
 
       if (missingIds.length > 0 && sessionId) {
-        
+
         // Fetch the session again to get IDs
         fetch(`/api/session/${sessionId}`)
           .then(res => {
@@ -93,36 +108,37 @@ function SessionReview({ sessionData, onStartNew }) {
                 return ks
               })
               setLocalKeystrokes(updated)
-              setCropEnd(updated.length - 1)
+              initCropValues(updated.length)
             } else {
               setLocalKeystrokes(keystrokesWithIds)
-              setCropEnd(keystrokesWithIds.length - 1)
+              initCropValues(keystrokesWithIds.length)
             }
           })
           .catch(err => {
             console.error('Failed to fetch session for IDs:', err)
             // Still set keystrokes even if fetch failed
             setLocalKeystrokes(keystrokesWithIds)
-            setCropEnd(keystrokesWithIds.length - 1)
+            initCropValues(keystrokesWithIds.length)
           })
       } else {
         // All keystrokes have IDs, set them directly
         setLocalKeystrokes(keystrokesWithIds)
-        setCropEnd(keystrokesWithIds.length - 1)
+        initCropValues(keystrokesWithIds.length)
       }
     } else {
       // Empty or no keystrokes array - set empty to prevent infinite loading
       setLocalKeystrokes([])
-      setCropEnd(null)
+      setPendingCropEnd(null)
+      setAppliedCropEnd(null)
     }
   }, [sessionData]) // Re-initialize when sessionData changes
 
-  // Get cropped keystrokes
+  // Get cropped keystrokes - uses APPLIED values (not pending)
   const displayKeystrokes = useMemo(() => {
     if (!localKeystrokes) return []
-    const end = cropEnd !== null ? cropEnd + 1 : localKeystrokes.length
-    return localKeystrokes.slice(cropStart, end)
-  }, [localKeystrokes, cropStart, cropEnd])
+    const end = appliedCropEnd !== null ? appliedCropEnd + 1 : localKeystrokes.length
+    return localKeystrokes.slice(appliedCropStart, end)
+  }, [localKeystrokes, appliedCropStart, appliedCropEnd])
 
   const stats = useMemo(() => {
     if (!displayKeystrokes || displayKeystrokes.length === 0) return null
@@ -377,7 +393,7 @@ function SessionReview({ sessionData, onStartNew }) {
       for (let idx = 0; idx < displayKeystrokes.length; idx++) {
         const ks = displayKeystrokes[idx]
         // Only process ambiguous keys
-        if (!AMBIGUOUS_KEYS.includes(ks.key.toLowerCase())) continue
+        if (!ambiguousKeys.includes(ks.key.toLowerCase())) continue
         
         // Must have a real ID to save
         if (!ks.id) {
@@ -470,7 +486,7 @@ function SessionReview({ sessionData, onStartNew }) {
 
   const annotationProgress = useMemo(() => {
     if (!displayKeystrokes) return { annotated: 0, total: 0 }
-    const ambiguousKeystrokes = displayKeystrokes.filter(ks => AMBIGUOUS_KEYS.includes(ks.key.toLowerCase()))
+    const ambiguousKeystrokes = displayKeystrokes.filter(ks => ambiguousKeys.includes(ks.key.toLowerCase()))
     const total = ambiguousKeystrokes.length
     const annotated = ambiguousKeystrokes.filter((ks, idx) => {
       const keystrokeId = ks.id || `keystroke-${displayKeystrokes.indexOf(ks)}`
@@ -695,7 +711,7 @@ function SessionReview({ sessionData, onStartNew }) {
     
     const currentKey = displayKeystrokes[keystrokeIndex].key.toLowerCase()
     
-    if (!AMBIGUOUS_KEYS.includes(currentKey)) return null
+    if (!ambiguousKeys.includes(currentKey)) return null
     
     // Find word boundaries
     let wordStart = keystrokeIndex
@@ -718,24 +734,68 @@ function SessionReview({ sessionData, onStartNew }) {
     return { word, keyPosition, key: currentKey }
   }
 
-  const handleApplyCrop = () => {
-    if (cropStart === 0 && (cropEnd === null || cropEnd === localKeystrokes.length - 1)) {
-      return // No crop needed
+  const handleApplyCrop = async () => {
+    const sessionId = sessionData?.session_id || sessionData?.id
+    const maxEnd = localKeystrokes ? localKeystrokes.length - 1 : 0
+    const effectiveEnd = pendingCropEnd !== null ? pendingCropEnd : maxEnd
+
+    // Validate crop indices
+    if (pendingCropStart < 0 || effectiveEnd < pendingCropStart || effectiveEnd > maxEnd) {
+      setCropStatus({ type: 'error', message: 'Invalid crop range' })
+      return
     }
-    
-    const end = cropEnd !== null ? cropEnd + 1 : localKeystrokes.length
-    const cropped = localKeystrokes.slice(cropStart, end)
-    
-    // Update timestamps to start from 0
-    const firstTimestamp = cropped[0]?.timestamp || 0
-    const adjusted = cropped.map((ks, i) => ({
-      ...ks,
-      timestamp: ks.timestamp - firstTimestamp
-    }))
-    
-    setLocalKeystrokes(adjusted)
-    setCropStart(0)
-    setCropEnd(adjusted.length - 1)
+
+    // No crop needed if already at full range
+    if (pendingCropStart === 0 && effectiveEnd === maxEnd) {
+      setCropStatus({ type: 'info', message: 'No crop needed - already showing full range' })
+      return
+    }
+
+    setCropStatus({ type: 'loading', message: 'Applying crop...' })
+
+    try {
+      // Call API to persist the crop
+      const response = await fetch(
+        `/api/session/${sessionId}/crop?crop_start=${pendingCropStart}&crop_end=${effectiveEnd}`,
+        { method: 'POST' }
+      )
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.detail || 'Failed to crop session')
+      }
+
+      const result = await response.json()
+
+      // Reload the session to get updated keystrokes
+      const sessionResponse = await fetch(`/api/session/${sessionId}`)
+      if (sessionResponse.ok) {
+        const updatedSession = await sessionResponse.json()
+        if (updatedSession.keystrokes) {
+          setLocalKeystrokes(updatedSession.keystrokes)
+          // Reset crop values for the new (cropped) data
+          setPendingCropStart(0)
+          setPendingCropEnd(updatedSession.keystrokes.length - 1)
+          setAppliedCropStart(0)
+          setAppliedCropEnd(updatedSession.keystrokes.length - 1)
+        }
+      }
+
+      setCropStatus({
+        type: 'success',
+        message: `Cropped! Removed ${result.deleted_count} keystrokes, ${result.remaining_count} remaining.`
+      })
+    } catch (err) {
+      console.error('Failed to apply crop:', err)
+      setCropStatus({ type: 'error', message: err.message })
+    }
+  }
+
+  // Preview crop (applies locally without saving to DB)
+  const handlePreviewCrop = () => {
+    setAppliedCropStart(pendingCropStart)
+    setAppliedCropEnd(pendingCropEnd)
+    setCropStatus({ type: 'info', message: 'Preview mode - click "Save Crop" to persist' })
   }
 
   return (
@@ -775,28 +835,39 @@ function SessionReview({ sessionData, onStartNew }) {
               type="number"
               min="0"
               max={localKeystrokes ? localKeystrokes.length - 1 : 0}
-              value={cropStart}
-              onChange={(e) => setCropStart(Math.max(0, Math.min(parseInt(e.target.value) || 0, cropEnd !== null ? cropEnd : (localKeystrokes?.length || 0) - 1)))}
+              value={pendingCropStart}
+              onChange={(e) => {
+                const max = pendingCropEnd !== null ? pendingCropEnd : (localKeystrokes?.length || 0) - 1
+                setPendingCropStart(Math.max(0, Math.min(parseInt(e.target.value) || 0, max)))
+              }}
             />
           </div>
           <div className="crop-input-group">
             <label>Crop End:</label>
             <input
               type="number"
-              min={cropStart}
+              min={pendingCropStart}
               max={localKeystrokes ? localKeystrokes.length - 1 : 0}
-              value={cropEnd !== null ? cropEnd : (localKeystrokes?.length || 0) - 1}
+              value={pendingCropEnd !== null ? pendingCropEnd : (localKeystrokes?.length || 0) - 1}
               onChange={(e) => {
                 const maxIndex = localKeystrokes ? Math.max(0, localKeystrokes.length - 1) : 0
                 const value = parseInt(e.target.value) || 0
-                setCropEnd(Math.max(cropStart, Math.min(value, maxIndex)))
+                setPendingCropEnd(Math.max(pendingCropStart, Math.min(value, maxIndex)))
               }}
             />
           </div>
-          <button onClick={handleApplyCrop} className="crop-button">
-            Apply Crop
+          <button onClick={handlePreviewCrop} className="crop-button preview">
+            Preview
+          </button>
+          <button onClick={handleApplyCrop} className="crop-button save">
+            Save Crop
           </button>
         </div>
+        {cropStatus && (
+          <div className={`crop-status ${cropStatus.type}`}>
+            {cropStatus.message}
+          </div>
+        )}
       </div>
 
       {wpmChartDataFormatted && (
@@ -823,7 +894,7 @@ function SessionReview({ sessionData, onStartNew }) {
           {/* Show only ambiguous keys with their word context */}
           <div className="annotation-list">
             {displayKeystrokes.map((ks, idx) => {
-              const isAmbiguous = AMBIGUOUS_KEYS.includes(ks.key.toLowerCase())
+              const isAmbiguous = ambiguousKeys.includes(ks.key.toLowerCase())
               
               if (!isAmbiguous) return null
               

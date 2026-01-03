@@ -12,9 +12,8 @@ with explanations of their purpose and derivation.
 MAX_KEYSTROKE_DURATION_MS = 5000
 
 # Minimum number of samples required for a pattern to be included
-# in statistical analysis. Helps avoid noisy statistics from
-# patterns with too few occurrences.
-MIN_PATTERN_SAMPLES = 3
+# in statistical analysis. Set to 1 to show all patterns (can filter in UI).
+MIN_PATTERN_SAMPLES = 1
 
 # For trigraph_test mode, we only need 1 sample since each session
 # is exactly 3 characters - the entire purpose is to capture rare patterns

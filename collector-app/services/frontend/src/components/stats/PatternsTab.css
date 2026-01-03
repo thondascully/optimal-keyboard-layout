@@ -151,6 +151,27 @@
   min-width: 60px;
 }
 
+/* Archetype Badges */
+.pattern-archetype {
+  padding: 0.15rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.detail-archetype {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: white;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+}
+
 .pattern-count {
   font-size: 0.75rem;
   color: var(--text-dim, #888);

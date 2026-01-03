@@ -64,10 +64,12 @@ class CoverageService:
 
             keystrokes = c.fetchall()
 
-        # Build finger pair counts from bigrams within trigraphs
+        # Build finger pair counts from bigrams
+        # Also count actual trigraphs (3 consecutive keystrokes in same session)
         pair_counts = defaultdict(lambda: {'count': 0, 'times': []})
         trigraph_count = 0
-        prev_ks = {}  # Track previous keystroke per session
+        prev_ks = {}  # Track previous keystroke per session: {session_id: {'timestamp': ts, 'key': key}}
+        prev_prev_ks = {}  # Track 2-ago keystroke per session for trigraph counting
 
         for row in keystrokes:
             key = row['key_char']
@@ -86,23 +88,22 @@ class CoverageService:
 
                     # Calculate duration if we have previous timestamp
                     if session_id in prev_ks:
-                        duration = timestamp - prev_ks[session_id]
+                        duration = timestamp - prev_ks[session_id]['timestamp']
                         if 0 < duration < MAX_KEYSTROKE_DURATION_MS:
                             pair_counts[pair_key]['count'] += 1
                             pair_counts[pair_key]['times'].append(duration)
 
-            prev_ks[session_id] = timestamp
+            # Count trigraphs: need 3 consecutive keystrokes in same session
+            if session_id in prev_ks and session_id in prev_prev_ks:
+                prev_prev_ts = prev_prev_ks[session_id]['timestamp']
+                total_duration = timestamp - prev_prev_ts
+                if 0 < total_duration < MAX_KEYSTROKE_DURATION_MS:
+                    trigraph_count += 1
 
-        # Count unique trigraphs (sessions in trigraph_test mode = trigraph count)
-        with db.cursor() as c:
-            if mode_filter:
-                c.execute(
-                    "SELECT COUNT(*) FROM sessions WHERE mode = ?",
-                    (mode_filter,)
-                )
-            else:
-                c.execute("SELECT COUNT(*) FROM sessions")
-            trigraph_count = c.fetchone()[0]
+            # Update history for this session
+            if session_id in prev_ks:
+                prev_prev_ks[session_id] = prev_ks[session_id]
+            prev_ks[session_id] = {'timestamp': timestamp, 'key': key}
 
         # Build coverage matrix
         coverage_matrix = self._build_coverage_matrix(pair_counts)

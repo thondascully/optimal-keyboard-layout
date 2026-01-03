@@ -16,6 +16,8 @@ import CoverageTab from './stats/CoverageTab'
 import DeviationTab from './stats/DeviationTab'
 import PatternsTab from './stats/PatternsTab'
 import DataViewerTab from './stats/DataViewerTab'
+import { ALL_OVERWRITABLE_KEYS, getEnabledOverwritableKeys, setEnabledOverwritableKeys } from '../utils/constants'
+import { getAllLetterKeys, getFingerMap, setCustomFingerMap, resetFingerMap, DEFAULT_FINGER_MAP } from '../utils/fingerMapping'
 import './StatsView.css'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend)
@@ -463,6 +465,66 @@ function StatsView({ onClose }) {
                   </div>
                 </div>
               </div>
+
+              {/* Finger Progress - "Finger Leveling" from spec */}
+              {stats.finger_counts && Object.keys(stats.finger_counts).length > 0 && (
+                <div className="card">
+                  <h3>Finger Progress</h3>
+                  <p className="section-desc">Samples collected per finger - heat map shows collection status.</p>
+                  <div className="finger-progress-grid">
+                    {(() => {
+                      // Only fingers that have letter assignments (no pinkies/thumbs for alpha tests)
+                      const fingers = [
+                        'left_ring', 'left_middle', 'left_index',
+                        'right_index', 'right_middle', 'right_ring'
+                      ];
+                      const fingerLabels = {
+                        'left_ring': 'L.Ring', 'left_middle': 'L.Mid', 'left_index': 'L.Idx',
+                        'right_index': 'R.Idx', 'right_middle': 'R.Mid', 'right_ring': 'R.Ring'
+                      };
+                      // Heat map color function: cold (blue) -> warm (green) -> hot (red)
+                      const getHeatColor = (percent) => {
+                        if (percent <= 0) return '#1e3a5f'; // Very dark blue for 0
+                        if (percent < 25) return '#2196F3'; // Blue - needs data
+                        if (percent < 50) return '#00BCD4'; // Cyan - getting there
+                        if (percent < 75) return '#4CAF50'; // Green - good
+                        if (percent < 100) return '#8BC34A'; // Light green - almost there
+                        if (percent < 150) return '#FFC107'; // Amber - target hit
+                        return '#FF5722'; // Deep orange - exceeds target
+                      };
+                      const targetPerFinger = 200; // Target samples per finger
+
+                      return fingers.map(finger => {
+                        const count = stats.finger_counts[finger] || 0;
+                        const percent = (count / targetPerFinger) * 100;
+                        const displayPercent = Math.min(100, percent);
+                        return (
+                          <div key={finger} className="finger-progress-item">
+                            <div className="finger-label">{fingerLabels[finger]}</div>
+                            <div className="finger-bar-container">
+                              <div
+                                className="finger-bar-fill"
+                                style={{
+                                  width: `${displayPercent}%`,
+                                  backgroundColor: getHeatColor(percent)
+                                }}
+                              />
+                            </div>
+                            <div className="finger-count" style={{ color: getHeatColor(percent) }}>{count}</div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
+                  <div className="heat-legend">
+                    <span className="heat-legend-item" style={{ color: '#2196F3' }}>0-25%</span>
+                    <span className="heat-legend-item" style={{ color: '#00BCD4' }}>25-50%</span>
+                    <span className="heat-legend-item" style={{ color: '#4CAF50' }}>50-75%</span>
+                    <span className="heat-legend-item" style={{ color: '#8BC34A' }}>75-100%</span>
+                    <span className="heat-legend-item" style={{ color: '#FFC107' }}>100%+</span>
+                  </div>
+                </div>
+              )}
             </>
           ) : loading ? (
             <div className="card">
@@ -1083,89 +1145,202 @@ function StatsView({ onClose }) {
       )}
 
       {activeTab === 'database' && (
-        <div className="card">
-          <h3>Database Management</h3>
-          <div className="database-actions">
-            <div className="db-action-item">
-              <h4>Download Database</h4>
-              <p>Export your current database as a SQLite file</p>
-              <button 
-                onClick={async () => {
-                  try {
-                    const response = await fetch('/api/database/download')
-                    if (response.ok) {
-                      const blob = await response.blob()
-                      const url = window.URL.createObjectURL(blob)
-                      const a = document.createElement('a')
-                      a.href = url
-                      const now = new Date()
-                      const dateStr = now.toISOString().split('T')[0]
-                      const timeStr = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
-                      a.download = `typing_data_${dateStr}_${timeStr}.db`
-                      document.body.appendChild(a)
-                      a.click()
-                      document.body.removeChild(a)
-                      window.URL.revokeObjectURL(url)
+        <>
+          <div className="card">
+            <h3>Database Management</h3>
+            <div className="database-actions">
+              <div className="db-action-item">
+                <h4>Download Database</h4>
+                <p>Export your current database as a SQLite file</p>
+                <button
+                  onClick={async () => {
+                    try {
+                      const response = await fetch('/api/database/download')
+                      if (response.ok) {
+                        const blob = await response.blob()
+                        const url = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = url
+                        const now = new Date()
+                        const dateStr = now.toISOString().split('T')[0]
+                        const timeStr = `${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+                        a.download = `typing_data_${dateStr}_${timeStr}.db`
+                        document.body.appendChild(a)
+                        a.click()
+                        document.body.removeChild(a)
+                        window.URL.revokeObjectURL(url)
+                      }
+                    } catch (err) {
+                      console.error('Failed to download database:', err)
+                      alert('Failed to download database')
                     }
-                  } catch (err) {
-                    console.error('Failed to download database:', err)
-                    alert('Failed to download database')
-                  }
-                }}
-                className="db-button"
-              >
-                Download Database
-              </button>
-            </div>
-            <div className="db-action-item">
-              <h4>Upload Database</h4>
-              <p>Import a database file (will replace current database)</p>
-              <input
-                type="file"
-                accept=".db"
-                id="db-upload-input"
-                style={{ display: 'none' }}
-                onChange={async (e) => {
-                  const file = e.target.files[0]
-                  if (!file) return
-                  
-                  if (!confirm('This will replace your current database. Are you sure?')) {
-                    e.target.value = ''
-                    return
-                  }
-                  
-                  const formData = new FormData()
-                  formData.append('file', file)
-                  
-                  try {
-                    const response = await fetch('/api/database/upload', {
-                      method: 'POST',
-                      body: formData
-                    })
-                    
-                    if (response.ok) {
-                      alert('Database uploaded successfully!')
-                      await loadData(true)
-                    } else {
+                  }}
+                  className="db-button"
+                >
+                  Download Database
+                </button>
+              </div>
+              <div className="db-action-item">
+                <h4>Upload Database</h4>
+                <p>Import a database file (will replace current database)</p>
+                <input
+                  type="file"
+                  accept=".db"
+                  id="db-upload-input"
+                  style={{ display: 'none' }}
+                  onChange={async (e) => {
+                    const file = e.target.files[0]
+                    if (!file) return
+
+                    if (!confirm('This will replace your current database. Are you sure?')) {
+                      e.target.value = ''
+                      return
+                    }
+
+                    const formData = new FormData()
+                    formData.append('file', file)
+
+                    try {
+                      const response = await fetch('/api/database/upload', {
+                        method: 'POST',
+                        body: formData
+                      })
+
+                      if (response.ok) {
+                        alert('Database uploaded successfully!')
+                        await loadData(true)
+                      } else {
+                        alert('Failed to upload database')
+                      }
+                    } catch (err) {
+                      console.error('Failed to upload database:', err)
                       alert('Failed to upload database')
                     }
-                  } catch (err) {
-                    console.error('Failed to upload database:', err)
-                    alert('Failed to upload database')
-                  }
-                  
-                  e.target.value = ''
+
+                    e.target.value = ''
+                  }}
+                />
+                <button
+                  onClick={() => document.getElementById('db-upload-input').click()}
+                  className="db-button"
+                >
+                  Upload Database
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Overwritable Keys Settings */}
+          <div className="card">
+            <h3>Overwritable Keys Settings</h3>
+            <p className="section-desc">
+              Select which letters should appear in the finger annotation section.
+              These are keys that you might type with different fingers depending on context.
+            </p>
+            <div className="overwritable-keys-grid">
+              {ALL_OVERWRITABLE_KEYS.map(key => {
+                const enabled = getEnabledOverwritableKeys().includes(key)
+                return (
+                  <label key={key} className={`key-toggle ${enabled ? 'enabled' : ''}`}>
+                    <input
+                      type="checkbox"
+                      checked={enabled}
+                      onChange={(e) => {
+                        const current = getEnabledOverwritableKeys()
+                        if (e.target.checked) {
+                          setEnabledOverwritableKeys([...current, key])
+                        } else {
+                          setEnabledOverwritableKeys(current.filter(k => k !== key))
+                        }
+                        // Force re-render
+                        setStats(prev => ({ ...prev }))
+                      }}
+                    />
+                    <span className="key-letter">{key.toUpperCase()}</span>
+                  </label>
+                )
+              })}
+            </div>
+            <p className="settings-note">
+              Changes take effect immediately for new sessions.
+            </p>
+          </div>
+
+          {/* Finger Assignments Settings */}
+          <div className="card">
+            <h3>Finger Assignments</h3>
+            <p className="section-desc">
+              Customize which finger you use for each letter. Changes affect archetype classification and progress tracking.
+            </p>
+            <div className="finger-assignments-grid">
+              {(() => {
+                const fingerMap = getFingerMap()
+                const fingerOptions = [
+                  { value: 'left_ring', label: 'L.Ring' },
+                  { value: 'left_middle', label: 'L.Mid' },
+                  { value: 'left_index', label: 'L.Idx' },
+                  { value: 'right_index', label: 'R.Idx' },
+                  { value: 'right_middle', label: 'R.Mid' },
+                  { value: 'right_ring', label: 'R.Ring' },
+                ]
+
+                // Group letters by row for keyboard layout
+                const rows = [
+                  ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+                  ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+                  ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+                ]
+
+                return rows.map((row, rowIdx) => (
+                  <div key={rowIdx} className="finger-row">
+                    {row.map(letter => {
+                      const currentFinger = fingerMap[letter] || ''
+                      const isCustom = fingerMap[letter] !== DEFAULT_FINGER_MAP[letter]
+                      return (
+                        <div key={letter} className={`finger-assignment ${isCustom ? 'customized' : ''}`}>
+                          <span className="assignment-letter">{letter.toUpperCase()}</span>
+                          <select
+                            value={currentFinger}
+                            onChange={(e) => {
+                              const newValue = e.target.value
+                              const currentCustom = getFingerMap()
+                              if (newValue === DEFAULT_FINGER_MAP[letter]) {
+                                // If setting back to default, remove the custom override
+                                const newCustom = { ...currentCustom }
+                                delete newCustom[letter]
+                                setCustomFingerMap(newCustom)
+                              } else {
+                                setCustomFingerMap({ ...currentCustom, [letter]: newValue })
+                              }
+                              // Force re-render
+                              setStats(prev => ({ ...prev }))
+                            }}
+                            className="finger-select-small"
+                          >
+                            {fingerOptions.map(opt => (
+                              <option key={opt.value} value={opt.value}>{opt.label}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))
+              })()}
+            </div>
+            <div className="settings-actions">
+              <button
+                onClick={() => {
+                  resetFingerMap()
+                  setStats(prev => ({ ...prev }))
                 }}
-              />
-              <button 
-                onClick={() => document.getElementById('db-upload-input').click()}
-                className="db-button"
+                className="reset-button"
               >
-                Upload Database
+                Reset to Defaults
               </button>
             </div>
           </div>
-        </div>
+        </>
       )}
 
       {activeTab === 'patterns' && (
