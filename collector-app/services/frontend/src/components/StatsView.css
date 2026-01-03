@@ -1275,3 +1275,761 @@
 [data-theme="dark"] .recharts-cartesian-grid line {
   stroke: var(--border-color, #444);
 }
+
+/* ============================================
+   MODERNIZED OVERVIEW TAB
+   ============================================ */
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, var(--bg-lighter) 0%, var(--bg-gray) 100%);
+  border: 1px solid var(--border-light);
+  padding: 1.25rem;
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.metric-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: 'Courier New', monospace;
+  line-height: 1.2;
+}
+
+.metric-label {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 0.25rem;
+}
+
+/* Overview Row */
+.overview-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.overview-card {
+  min-height: 220px;
+}
+
+.overview-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+/* Mode Chart */
+.mode-chart-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mode-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.legend-text {
+  color: var(--text-sub);
+  flex: 1;
+}
+
+.legend-count {
+  color: var(--text-dim);
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+/* Details Grid */
+.details-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.6rem;
+  background: var(--bg-gray);
+  border-left: 2px solid var(--border-light);
+}
+
+.detail-item.full-width {
+  grid-column: 1 / -1;
+}
+
+.detail-item .detail-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.detail-item .detail-value {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  font-weight: 600;
+  font-family: monospace;
+}
+
+/* ============================================
+   PATTERN MODAL (Enhanced)
+   ============================================ */
+
+.pattern-modal {
+  width: 100%;
+  max-width: 600px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.pattern-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, var(--bg-gray) 0%, var(--bg-lighter) 100%);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pattern-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pattern-text-large {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 2px;
+}
+
+.pattern-type {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+}
+
+.close-modal {
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.close-modal:hover {
+  color: var(--text-main);
+}
+
+/* Pattern Stats Row */
+.pattern-stats-row {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--bg-lighter);
+  border-bottom: 1px solid var(--border-light);
+  flex-wrap: wrap;
+}
+
+.pattern-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.pattern-stat.primary .stat-number {
+  color: var(--accent);
+  font-size: 1.25rem;
+}
+
+.stat-number {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.stat-unit {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+}
+
+/* Pattern Sections */
+.pattern-modal .pattern-section {
+  display: block;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pattern-modal .pattern-section:last-child {
+  border-bottom: none;
+}
+
+.pattern-modal .pattern-section h4 {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+/* Distribution Chart */
+.distribution-legend {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.distribution-legend .legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.distribution-legend .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+.distribution-legend .dot.normal {
+  background: #4A90E2;
+}
+
+.distribution-legend .dot.outlier {
+  background: #f44336;
+}
+
+.distribution-legend .threshold {
+  font-family: monospace;
+  color: var(--text-sub);
+}
+
+.distribution-chart {
+  background: var(--bg-gray);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+/* Words Grid */
+.pattern-words-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.word-chip {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: var(--bg-gray);
+  border: 1px solid var(--border-light);
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.word-chip mark {
+  background: var(--accent);
+  color: white;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+/* Session Breakdown */
+.session-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.session-breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-gray);
+  font-size: 0.85rem;
+}
+
+.session-breakdown-item .session-id {
+  font-family: monospace;
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 40px;
+}
+
+.session-breakdown-item .session-time {
+  font-family: monospace;
+  color: var(--text-main);
+}
+
+.session-breakdown-item .session-count {
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+/* Outlier Info */
+.outlier-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 152, 0, 0.08) !important;
+  border-left: 3px solid #FF9800;
+}
+
+.outlier-badge {
+  font-size: 0.8rem;
+  color: #FF9800;
+  font-weight: 600;
+}
+
+.raw-avg {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-family: monospace;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 900px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .overview-row {
+    grid-template-columns: 1fr;
+  }
+
+  .mode-chart-container {
+    flex-direction: column;
+  }
+
+  .mode-legend {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .metrics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metric-value {
+    font-size: 1.25rem;
+  }
+
+  .pattern-stats-row {
+    justify-content: center;
+  }
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+[data-theme="dark"] .metric-card {
+  background: linear-gradient(135deg, var(--bg-dark-gray) 0%, var(--bg-darker) 100%);
+}
+
+[data-theme="dark"] .pattern-modal-header {
+  background: linear-gradient(135deg, var(--bg-darker) 0%, var(--bg-dark-gray) 100%);
+}
+
+[data-theme="dark"] .distribution-chart {
+  background: var(--bg-darker);
+}
+
+[data-theme="dark"] .word-chip {
+  background: var(--bg-darker);
+}
+
+[data-theme="dark"] .session-breakdown-item {
+  background: var(--bg-darker);
+}
+
+[data-theme="dark"] .detail-item {
+  background: var(--bg-darker);
+}
+
+/* ============================================
+   SESSIONS TAB (Modernized)
+   ============================================ */
+
+/* Sessions List Card */
+.sessions-list-card {
+  padding: 0;
+}
+
+.sessions-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.sessions-list-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.sessions-filters {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mode-select {
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-gray);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.session-count {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+/* Sessions Table */
+.sessions-table {
+  font-size: 0.85rem;
+}
+
+.sessions-table-header {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr 100px 70px;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--bg-gray);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.sessions-table-body {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.session-row {
+  display: grid;
+  grid-template-columns: 100px 100px 1fr 100px 70px;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  align-items: center;
+}
+
+.session-row:hover {
+  background: var(--bg-gray);
+}
+
+.session-row:last-child {
+  border-bottom: none;
+}
+
+.session-row .col-id {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.session-num {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.session-tag {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  background: var(--bg-gray);
+  padding: 0.1rem 0.3rem;
+  max-width: fit-content;
+}
+
+.mode-badge {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+  background: var(--bg-gray);
+  border: 1px solid var(--border-light);
+  color: var(--text-sub);
+}
+
+.session-row .col-text {
+  font-family: monospace;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.session-row .col-date {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.session-row .col-actions {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 0.25rem 0.5rem;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.15s ease;
+}
+
+.action-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.action-btn.delete:hover {
+  border-color: var(--text-error);
+  color: var(--text-error);
+}
+
+/* Session Detail Card */
+.session-detail-card {
+  padding: 0;
+}
+
+.session-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-gray);
+}
+
+.back-btn {
+  padding: 0.4rem 0.75rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  color: var(--text-main);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s ease;
+}
+
+.back-btn:hover {
+  border-color: var(--accent);
+}
+
+.session-header-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.session-id-large {
+  font-family: monospace;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.session-mode-badge {
+  padding: 0.25rem 0.6rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  font-size: 0.8rem;
+  color: var(--text-sub);
+}
+
+.session-label-badge {
+  padding: 0.2rem 0.5rem;
+  background: var(--accent);
+  color: white;
+  font-size: 0.75rem;
+}
+
+.session-header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn {
+  padding: 0.4rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border-light);
+  color: var(--text-sub);
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.15s ease;
+}
+
+.edit-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.label-edit-inline {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.label-edit-inline input {
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border-light);
+  background: var(--bg-lighter);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  width: 150px;
+}
+
+.label-edit-inline button {
+  padding: 0.4rem 0.6rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+/* Session Meta Grid */
+.session-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--border-light);
+}
+
+.session-meta-grid .meta-item {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem;
+  border-right: 1px solid var(--border-light);
+}
+
+.session-meta-grid .meta-item:last-child {
+  border-right: none;
+}
+
+.session-meta-grid .meta-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 0.25rem;
+}
+
+.session-meta-grid .meta-value {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Session Text Section */
+.session-text-section {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.session-text-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.text-content {
+  margin: 0;
+  padding: 0.75rem;
+  background: var(--bg-gray);
+  border: 1px solid var(--border-light);
+  font-family: monospace;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+/* Dark mode */
+[data-theme="dark"] .session-detail-header {
+  background: var(--bg-darker);
+}
+
+[data-theme="dark"] .sessions-table-header {
+  background: var(--bg-darker);
+}
+
+[data-theme="dark"] .session-row:hover {
+  background: var(--bg-dark-gray);
+}
+
+[data-theme="dark"] .text-content {
+  background: var(--bg-darker);
+}

@@ -1,0 +1,368 @@
+/**
+ * DataQuality styles
+ */
+
+.data-quality {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Section Toggle */
+.section-toggle {
+  display: flex;
+  gap: 0.25rem;
+  padding: 4px;
+  background: var(--bg-gray);
+  border-radius: 8px;
+}
+
+.section-toggle button {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.section-toggle button:hover {
+  color: var(--text-main);
+}
+
+.section-toggle button.active {
+  background: var(--bg-lighter);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Quality Hero */
+.quality-hero {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  padding: 1.5rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+}
+
+.quality-gauge {
+  flex-shrink: 0;
+}
+
+.quality-metrics {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Letter Summary */
+.letter-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.75rem;
+}
+
+.letter-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: var(--bg-gray);
+  border-radius: 6px;
+}
+
+.letter-key {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: monospace;
+}
+
+.letter-details {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.letter-count {
+  color: var(--text-main);
+}
+
+.letter-rate {
+  color: var(--text-dim);
+}
+
+.letter-bar {
+  height: 4px;
+  background: var(--bg-dark-gray);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.letter-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+/* Quality Tips */
+.quality-tips ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.quality-tips li {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-sub);
+}
+
+.quality-tips li strong {
+  color: var(--text-main);
+}
+
+/* Deviation Words */
+.section-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 0 0 1rem 0;
+}
+
+.deviation-words {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.deviation-word-card {
+  padding: 0.75rem;
+  background: var(--bg-gray);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+}
+
+.word-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.word-text {
+  font-family: monospace;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.word-text .deviated {
+  color: #f44336;
+  text-decoration: underline;
+}
+
+.deviation-count {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.deviation-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.detail-letter {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.detail-expected {
+  color: var(--text-dim);
+}
+
+.detail-arrow {
+  color: var(--text-dim);
+}
+
+.detail-actual {
+  color: #f44336;
+  font-weight: 600;
+}
+
+/* Pattern Table */
+.pattern-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pattern-header {
+  display: grid;
+  grid-template-columns: 100px 120px 1fr;
+  gap: 1rem;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pattern-row {
+  display: grid;
+  grid-template-columns: 100px 120px 1fr;
+  gap: 1rem;
+  padding: 0.5rem;
+  font-size: 0.85rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.pattern-row:last-child {
+  border-bottom: none;
+}
+
+.pattern-key {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.pattern-count {
+  color: var(--text-main);
+}
+
+.pattern-letters {
+  color: var(--text-dim);
+}
+
+/* Keystroke Stats */
+.keystroke-stats .stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.finger-breakdown h4 {
+  font-size: 0.9rem;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.finger-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.finger-bar-item {
+  display: grid;
+  grid-template-columns: 60px 1fr 50px;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.finger-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-sub);
+}
+
+.finger-bar {
+  height: 8px;
+  background: var(--bg-gray);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.finger-bar-fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+.finger-count {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: right;
+}
+
+/* Key Grid */
+.key-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 0.5rem;
+}
+
+.key-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--bg-gray);
+  border-radius: 6px;
+}
+
+.key-char {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.key-count {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.more-items {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.empty-state {
+  text-align: center;
+  color: var(--text-dim);
+  padding: 2rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .quality-hero {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .section-toggle {
+    flex-wrap: wrap;
+  }
+
+  .section-toggle button {
+    min-width: 100px;
+  }
+}
+
+/* Dark mode */
+[data-theme="dark"] .letter-stat,
+[data-theme="dark"] .deviation-word-card,
+[data-theme="dark"] .key-item {
+  background: var(--bg-dark-gray);
+}
+
+[data-theme="dark"] .section-toggle {
+  background: var(--bg-dark-gray);
+}

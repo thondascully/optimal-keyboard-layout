@@ -1,0 +1,129 @@
+/**
+ * PhaseNavigation styles
+ */
+
+.phase-navigation {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Phase buttons - top level */
+.phase-buttons {
+  display: flex;
+  gap: 0.25rem;
+  padding: 4px;
+  background: var(--bg-gray);
+  border-radius: 10px;
+  overflow-x: auto;
+}
+
+.phase-button {
+  flex: 1;
+  min-width: 90px;
+  padding: 0.6rem 1rem;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.phase-button:hover {
+  background: var(--bg-lighter);
+  color: var(--text-main);
+}
+
+.phase-button.active {
+  background: var(--bg-lighter);
+  color: var(--phase-color);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Tab buttons - second level */
+.tab-buttons {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  overflow-x: auto;
+}
+
+.tab-button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border-light);
+  background: var(--bg-lighter);
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-button:hover {
+  border-color: var(--phase-color);
+  color: var(--text-main);
+}
+
+.tab-button.active {
+  background: var(--phase-color);
+  border-color: var(--phase-color);
+  color: white;
+}
+
+.demo-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+  text-transform: uppercase;
+}
+
+.tab-button:not(.active) .demo-badge {
+  background: var(--bg-gray);
+  color: var(--text-dim);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .phase-buttons {
+    gap: 0.15rem;
+  }
+
+  .phase-button {
+    min-width: 70px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .tab-button {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Dark mode */
+[data-theme="dark"] .phase-buttons {
+  background: var(--bg-dark-gray);
+}
+
+[data-theme="dark"] .phase-button.active {
+  background: var(--bg-lighter);
+}
+
+[data-theme="dark"] .tab-button:not(.active) .demo-badge {
+  background: var(--bg-dark-gray);
+}

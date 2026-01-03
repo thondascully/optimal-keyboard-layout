@@ -1,0 +1,264 @@
+/**
+ * CollectionDashboard styles
+ */
+
+.collection-dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Hero Section */
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.hero-gauges {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  padding: 1.5rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+}
+
+.gauge-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gauge-detail {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.hero-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+/* Action Items */
+.action-items-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.action-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.action-item.priority-high {
+  background: rgba(244, 67, 54, 0.08);
+  border-left-color: #f44336;
+}
+
+.action-item.priority-medium {
+  background: rgba(255, 152, 0, 0.08);
+  border-left-color: #ff9800;
+}
+
+.action-item.priority-success {
+  background: rgba(76, 175, 80, 0.08);
+  border-left-color: #4caf50;
+}
+
+.action-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.action-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.action-content strong {
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.action-description {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.action-suggestion {
+  font-size: 0.8rem;
+  color: var(--accent);
+  font-weight: 500;
+  margin-top: 0.2rem;
+}
+
+/* Charts Section */
+.charts-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.chart-card h3,
+.stats-summary-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+}
+
+.chart-container {
+  min-height: 200px;
+}
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-light);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-sub);
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+/* Stats Summary */
+.stats-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-row .stat-label {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.stat-row .stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Patterns Preview */
+.patterns-preview-card h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+}
+
+.patterns-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.pattern-column h4 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  margin: 0 0 0.5rem 0;
+}
+
+.pattern-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pattern-item-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  background: var(--bg-gray);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.pattern-item-mini .pattern-text {
+  font-family: 'SF Mono', Monaco, monospace;
+  font-weight: 600;
+  color: var(--accent);
+  min-width: 2.5rem;
+}
+
+.pattern-item-mini .pattern-time {
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.pattern-item-mini .pattern-count {
+  color: var(--text-dim);
+  margin-left: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-gauges {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .hero-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .charts-section {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Dark mode */
+[data-theme="dark"] .action-item.priority-high {
+  background: rgba(244, 67, 54, 0.12);
+}
+
+[data-theme="dark"] .action-item.priority-medium {
+  background: rgba(255, 152, 0, 0.12);
+}
+
+[data-theme="dark"] .action-item.priority-success {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+[data-theme="dark"] .pattern-item-mini {
+  background: var(--bg-dark-gray);
+}

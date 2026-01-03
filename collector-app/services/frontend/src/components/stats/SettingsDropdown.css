@@ -1,0 +1,125 @@
+/**
+ * SettingsDropdown styles
+ */
+
+.settings-dropdown {
+  position: relative;
+}
+
+.settings-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--border-light);
+  background: var(--bg-lighter);
+  border-radius: 8px;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.settings-trigger:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.settings-trigger.open {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.settings-trigger svg {
+  transition: transform 0.3s ease;
+}
+
+.settings-trigger.open svg {
+  transform: rotate(90deg);
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 280px;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  overflow: hidden;
+  animation: slideDown 0.15s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settings-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.settings-item:hover {
+  background: var(--bg-gray);
+}
+
+.settings-item-icon {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.settings-item-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.settings-item-desc {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.1rem;
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 0.25rem 0;
+}
+
+.settings-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.settings-version {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Dark mode */
+[data-theme="dark"] .settings-menu {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}

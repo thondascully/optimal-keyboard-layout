@@ -1,0 +1,158 @@
+/**
+ * ModelTraining styles
+ */
+
+.model-training {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.training-status {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  padding: 1.5rem;
+  background: var(--bg-lighter);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+}
+
+.status-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.epoch-info {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
+.status-metrics {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.chart-container {
+  margin: 1rem 0;
+}
+
+.convergence-status {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 0.5rem 0 0 0;
+}
+
+.hyperparam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.75rem;
+}
+
+.hyperparam-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-gray);
+  border-radius: 6px;
+}
+
+.param-name {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  text-transform: capitalize;
+}
+
+.param-value {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: monospace;
+}
+
+.section-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 0 0 1rem 0;
+}
+
+.agility-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.agility-item {
+  padding: 0.75rem;
+  background: var(--bg-gray);
+  border-radius: 8px;
+}
+
+.finger-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-transform: capitalize;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.agility-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.agility-bar {
+  display: grid;
+  grid-template-columns: 50px 1fr 40px;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bar-label {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.bar-track {
+  height: 8px;
+  background: var(--bg-dark-gray);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 4px;
+}
+
+.bar-fill.land {
+  background: #4caf50;
+}
+
+.bar-value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  text-align: right;
+}
+
+@media (max-width: 768px) {
+  .training-status {
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
+[data-theme="dark"] .hyperparam-item,
+[data-theme="dark"] .agility-item {
+  background: var(--bg-dark-gray);
+}

@@ -134,16 +134,21 @@ class PatternService:
                             transition_stats[transition]['times'].append(duration)
 
                 # Analyze trigraph (need previous two keystrokes in same session)
-                if i >= 2 and keystrokes[i-2][3] == session_id:
-                    prev_prev_key = keystrokes[i - 2][0]
-                    prev_prev_timestamp = keystrokes[i - 2][2]
-                    if prev_prev_key and prev_key and key:
-                        trigraph = f"{prev_prev_key}{prev_key}{key}"
-                        duration = timestamp - prev_prev_timestamp
-                        if 0 < duration < MAX_KEYSTROKE_DURATION_MS:
-                            trigraph_stats[trigraph]['count'] += 1
-                            trigraph_stats[trigraph]['total_time'] += duration
-                            trigraph_stats[trigraph]['times'].append(duration)
+                if i >= 2:
+                    prev_ks = keystrokes[i - 1]
+                    prev_prev_ks = keystrokes[i - 2]
+                    # All three keystrokes must be in the same session
+                    if prev_prev_ks[3] == session_id and prev_ks[3] == session_id:
+                        prev_prev_key = prev_prev_ks[0]  # key_char from 2 ago
+                        prev_key_actual = prev_ks[0]     # key_char from 1 ago
+                        prev_prev_timestamp = prev_prev_ks[2]
+                        if prev_prev_key and prev_key_actual and key:
+                            trigraph = f"{prev_prev_key}{prev_key_actual}{key}"
+                            duration = timestamp - prev_prev_timestamp
+                            if 0 < duration < MAX_KEYSTROKE_DURATION_MS:
+                                trigraph_stats[trigraph]['count'] += 1
+                                trigraph_stats[trigraph]['total_time'] += duration
+                                trigraph_stats[trigraph]['times'].append(duration)
 
                 # Update previous keystroke for this session
                 prev_ks_by_session[session_id] = timestamp
@@ -167,9 +172,12 @@ class PatternService:
             }
 
     def _fetch_keystrokes(self, cursor, mode_filter: Optional[str]) -> List:
-        """Fetch keystrokes from database with optional mode filter."""
-        if mode_filter == 'trigraph_test':
-            # For trigraph_test, get all keystrokes including first ones
+        """Fetch keystrokes from database with optional mode filter.
+
+        Always includes all keystrokes (including first ones with prev_key=NULL)
+        to ensure proper trigraph analysis. Digraph filtering is handled in analysis.
+        """
+        if mode_filter:
             query = """
                 SELECT k.key_char, k.prev_key, k.timestamp, k.session_id, k.id
                 FROM keystrokes k
@@ -178,21 +186,11 @@ class PatternService:
                 ORDER BY k.session_id, k.id
             """
             cursor.execute(query, (mode_filter,))
-        elif mode_filter:
-            query = """
-                SELECT k.key_char, k.prev_key, k.timestamp, k.session_id, k.id
-                FROM keystrokes k
-                JOIN sessions s ON k.session_id = s.id
-                WHERE k.prev_key IS NOT NULL AND s.mode = ?
-                ORDER BY k.session_id, k.id
-            """
-            cursor.execute(query, (mode_filter,))
         else:
             cursor.execute("""
                 SELECT k.key_char, k.prev_key, k.timestamp, k.session_id, k.id
                 FROM keystrokes k
                 JOIN sessions s ON k.session_id = s.id
-                WHERE k.prev_key IS NOT NULL
                 ORDER BY k.session_id, k.id
             """)
 
@@ -267,14 +265,18 @@ class PatternService:
                         if 0 < duration < MAX_KEYSTROKE_DURATION_MS:
                             digraph_stats[digraph]['times'].append(duration)
 
-                if i >= 2 and keystrokes[i-2][3] == session_id:
-                    prev_prev_key = keystrokes[i - 2][0]
-                    prev_prev_timestamp = keystrokes[i - 2][2]
-                    if prev_prev_key and prev_key and key:
-                        trigraph = f"{prev_prev_key}{prev_key}{key}"
-                        duration = timestamp - prev_prev_timestamp
-                        if 0 < duration < MAX_KEYSTROKE_DURATION_MS:
-                            trigraph_stats[trigraph]['times'].append(duration)
+                if i >= 2:
+                    prev_ks = keystrokes[i - 1]
+                    prev_prev_ks = keystrokes[i - 2]
+                    if prev_prev_ks[3] == session_id and prev_ks[3] == session_id:
+                        prev_prev_key = prev_prev_ks[0]
+                        prev_key_actual = prev_ks[0]
+                        prev_prev_timestamp = prev_prev_ks[2]
+                        if prev_prev_key and prev_key_actual and key:
+                            trigraph = f"{prev_prev_key}{prev_key_actual}{key}"
+                            duration = timestamp - prev_prev_timestamp
+                            if 0 < duration < MAX_KEYSTROKE_DURATION_MS:
+                                trigraph_stats[trigraph]['times'].append(duration)
 
                 prev_ks_by_session[session_id] = timestamp
 

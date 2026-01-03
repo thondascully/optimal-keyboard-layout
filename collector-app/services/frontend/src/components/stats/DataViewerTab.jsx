@@ -1,18 +1,35 @@
 /**
- * Data Viewer Tab - Organized by session with expandable keystroke details.
+ * Data Viewer Tab - Organized by data categories (fingers, keys, timing).
  */
 
 import { useState, useEffect, useMemo } from 'react';
 import { keystrokesApi, sessionApi } from '../../api/client';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell, PieChart, Pie } from 'recharts';
 import './DataViewerTab.css';
 
+const FINGER_NAMES = {
+  'left_pinky': 'L. Pinky',
+  'left_ring': 'L. Ring',
+  'left_middle': 'L. Middle',
+  'left_index': 'L. Index',
+  'right_index': 'R. Index',
+  'right_middle': 'R. Middle',
+  'right_ring': 'R. Ring',
+  'right_pinky': 'R. Pinky',
+  'right_thumb': 'R. Thumb',
+};
+
+const FINGER_ORDER = [
+  'left_pinky', 'left_ring', 'left_middle', 'left_index',
+  'right_index', 'right_middle', 'right_ring', 'right_pinky'
+];
+
 function DataViewerTab() {
-  const [sessions, setSessions] = useState([]);
   const [keystrokesData, setKeystrokesData] = useState(null);
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedSessions, setExpandedSessions] = useState(new Set());
-  const [viewMode, setViewMode] = useState('sessions'); // 'sessions' | 'stats'
+  const [activeView, setActiveView] = useState('overview');
 
   useEffect(() => {
     loadData();
@@ -22,12 +39,12 @@ function DataViewerTab() {
     setLoading(true);
     setError(null);
     try {
-      const [sessionsRes, keystrokesRes] = await Promise.all([
+      const [keystrokesRes, sessionsRes] = await Promise.all([
+        keystrokesApi.getData(20000, 0),
         sessionApi.list(1000),
-        keystrokesApi.getData(10000, 0),
       ]);
-      setSessions(sessionsRes.sessions || []);
       setKeystrokesData(keystrokesRes);
+      setSessions(sessionsRes.sessions || []);
     } catch (err) {
       setError(err.message || 'Failed to load data');
     } finally {
@@ -35,88 +52,102 @@ function DataViewerTab() {
     }
   };
 
-  // Group keystrokes by session
-  const sessionData = useMemo(() => {
-    if (!keystrokesData?.keystrokes || !sessions.length) return [];
-
-    const grouped = {};
-    keystrokesData.keystrokes.forEach(ks => {
-      if (!grouped[ks.session_id]) {
-        grouped[ks.session_id] = [];
-      }
-      grouped[ks.session_id].push(ks);
-    });
-
-    return sessions.map(session => ({
-      ...session,
-      keystrokes: grouped[session.id] || [],
-      keystroke_count: grouped[session.id]?.length || 0,
-    })).filter(s => s.keystroke_count > 0).sort((a, b) => b.timestamp - a.timestamp);
-  }, [sessions, keystrokesData]);
-
-  // Compute statistics
+  // Compute all statistics
   const stats = useMemo(() => {
     if (!keystrokesData?.keystrokes) return null;
 
     const ks = keystrokesData.keystrokes;
-    const byFinger = {};
-    const byHand = {};
-    const byKey = {};
-    const byMode = {};
 
+    // Finger stats
+    const fingerCounts = {};
+    const fingerTimings = {};
     ks.forEach(k => {
-      if (k.finger) byFinger[k.finger] = (byFinger[k.finger] || 0) + 1;
-      if (k.hand) byHand[k.hand] = (byHand[k.hand] || 0) + 1;
-      byKey[k.key] = (byKey[k.key] || 0) + 1;
-      if (k.mode) byMode[k.mode] = (byMode[k.mode] || 0) + 1;
+      if (k.finger) {
+        fingerCounts[k.finger] = (fingerCounts[k.finger] || 0) + 1;
+        if (!fingerTimings[k.finger]) fingerTimings[k.finger] = [];
+        if (k.duration > 0 && k.duration < 2000) {
+          fingerTimings[k.finger].push(k.duration);
+        }
+      }
     });
 
-    // Sort by count
-    const sortedFinger = Object.entries(byFinger).sort((a, b) => b[1] - a[1]);
-    const sortedKey = Object.entries(byKey).sort((a, b) => b[1] - a[1]);
-    const sortedMode = Object.entries(byMode).sort((a, b) => b[1] - a[1]);
+    // Key frequency
+    const keyCounts = {};
+    ks.forEach(k => {
+      const key = k.key === ' ' ? 'SPACE' : k.key;
+      keyCounts[key] = (keyCounts[key] || 0) + 1;
+    });
 
-    // Calculate finger balance
-    const leftCount = Object.entries(byFinger)
+    // Mode breakdown
+    const modeCounts = {};
+    ks.forEach(k => {
+      if (k.mode) modeCounts[k.mode] = (modeCounts[k.mode] || 0) + 1;
+    });
+
+    // Hand balance
+    const leftCount = Object.entries(fingerCounts)
       .filter(([f]) => f.startsWith('left'))
       .reduce((sum, [, c]) => sum + c, 0);
-    const rightCount = Object.entries(byFinger)
+    const rightCount = Object.entries(fingerCounts)
       .filter(([f]) => f.startsWith('right'))
       .reduce((sum, [, c]) => sum + c, 0);
     const total = leftCount + rightCount;
-    const balance = total > 0 ? (leftCount / total * 100).toFixed(1) : 50;
+
+    // Timing stats per finger
+    const fingerAvgTiming = {};
+    Object.entries(fingerTimings).forEach(([finger, times]) => {
+      if (times.length > 0) {
+        fingerAvgTiming[finger] = Math.round(times.reduce((a, b) => a + b, 0) / times.length);
+      }
+    });
+
+    // Top digraphs by frequency (from raw keystrokes)
+    const digraphCounts = {};
+    for (let i = 1; i < ks.length; i++) {
+      if (ks[i].session_id === ks[i-1].session_id) {
+        const digraph = ks[i-1].key + ks[i].key;
+        if (digraph.length === 2 && !digraph.includes(' ')) {
+          digraphCounts[digraph] = (digraphCounts[digraph] || 0) + 1;
+        }
+      }
+    }
 
     return {
       total: ks.length,
-      sessions: sessionData.length,
-      byFinger: sortedFinger,
-      byHand,
-      byKey: sortedKey.slice(0, 20),
-      byMode: sortedMode,
-      leftHandPercent: balance,
-      rightHandPercent: (100 - parseFloat(balance)).toFixed(1),
-      avgKeystrokesPerSession: sessionData.length > 0
-        ? Math.round(ks.length / sessionData.length)
-        : 0,
+      sessions: sessions.length,
+      fingerData: FINGER_ORDER
+        .filter(f => fingerCounts[f])
+        .map(f => ({
+          name: FINGER_NAMES[f] || f,
+          finger: f,
+          count: fingerCounts[f],
+          percent: ((fingerCounts[f] / total) * 100).toFixed(1),
+          avgTime: fingerAvgTiming[f] || 0,
+        })),
+      keyData: Object.entries(keyCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 26)
+        .map(([key, count]) => ({ key, count, percent: ((count / ks.length) * 100).toFixed(1) })),
+      modeData: Object.entries(modeCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([mode, count]) => ({ mode, count })),
+      handBalance: {
+        left: total > 0 ? ((leftCount / total) * 100).toFixed(1) : 50,
+        right: total > 0 ? ((rightCount / total) * 100).toFixed(1) : 50,
+        leftCount,
+        rightCount,
+      },
+      topDigraphs: Object.entries(digraphCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 15)
+        .map(([digraph, count]) => ({ digraph, count })),
     };
-  }, [keystrokesData, sessionData]);
-
-  const toggleSession = (sessionId) => {
-    const newExpanded = new Set(expandedSessions);
-    if (newExpanded.has(sessionId)) {
-      newExpanded.delete(sessionId);
-    } else {
-      newExpanded.add(sessionId);
-    }
-    setExpandedSessions(newExpanded);
-  };
+  }, [keystrokesData, sessions]);
 
   if (loading) {
     return (
       <div className="data-viewer-tab">
-        <div className="card">
-          <p>Loading data...</p>
-        </div>
+        <div className="card"><p>Loading data...</p></div>
       </div>
     );
   }
@@ -132,171 +163,231 @@ function DataViewerTab() {
     );
   }
 
+  if (!stats) {
+    return (
+      <div className="data-viewer-tab">
+        <div className="card"><p>No data available.</p></div>
+      </div>
+    );
+  }
+
+  const COLORS = ['#4A90E2', '#50C878', '#FF9800', '#9C27B0', '#E91E63', '#00BCD4', '#8BC34A', '#FF5722'];
+
   return (
     <div className="data-viewer-tab">
-      {/* Controls */}
-      <div className="card viewer-controls">
-        <div className="controls-row">
-          <div className="toggle-buttons">
-            <button
-              className={viewMode === 'sessions' ? 'active' : ''}
-              onClick={() => setViewMode('sessions')}
-            >
-              By Session
-            </button>
-            <button
-              className={viewMode === 'stats' ? 'active' : ''}
-              onClick={() => setViewMode('stats')}
-            >
-              Statistics
-            </button>
-          </div>
-          <button className="refresh-btn" onClick={loadData}>Refresh</button>
-        </div>
-
-        <div className="quick-stats">
-          <span>{stats?.total.toLocaleString() || 0} keystrokes</span>
-          <span>{stats?.sessions || 0} sessions</span>
-          <span>{stats?.avgKeystrokesPerSession || 0} avg/session</span>
-        </div>
+      {/* View Tabs */}
+      <div className="view-tabs">
+        <button className={activeView === 'overview' ? 'active' : ''} onClick={() => setActiveView('overview')}>
+          Overview
+        </button>
+        <button className={activeView === 'fingers' ? 'active' : ''} onClick={() => setActiveView('fingers')}>
+          Fingers
+        </button>
+        <button className={activeView === 'keys' ? 'active' : ''} onClick={() => setActiveView('keys')}>
+          Keys
+        </button>
+        <button className={activeView === 'timing' ? 'active' : ''} onClick={() => setActiveView('timing')}>
+          Timing
+        </button>
       </div>
 
-      {/* Sessions View */}
-      {viewMode === 'sessions' && (
-        <div className="sessions-list">
-          {sessionData.map(session => (
-            <div key={session.id} className="session-card card">
-              <div
-                className="session-header"
-                onClick={() => toggleSession(session.id)}
-              >
-                <div className="session-info">
-                  <span className="session-id">Session #{session.id}</span>
-                  <span className="session-mode">{session.mode}</span>
-                  <span className="session-date">
-                    {new Date(session.timestamp * 1000).toLocaleString()}
-                  </span>
-                </div>
-                <div className="session-meta">
-                  <span className="keystroke-count">{session.keystroke_count} keys</span>
-                  <span className="expand-icon">
-                    {expandedSessions.has(session.id) ? '▼' : '▶'}
-                  </span>
-                </div>
+      {/* Overview */}
+      {activeView === 'overview' && (
+        <div className="overview-grid">
+          <div className="stat-card large">
+            <div className="stat-value">{stats.total.toLocaleString()}</div>
+            <div className="stat-label">Total Keystrokes</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{stats.sessions}</div>
+            <div className="stat-label">Sessions</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{stats.keyData.length}</div>
+            <div className="stat-label">Unique Keys</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-value">{Math.round(stats.total / stats.sessions) || 0}</div>
+            <div className="stat-label">Avg per Session</div>
+          </div>
+
+          {/* Hand Balance */}
+          <div className="balance-card">
+            <h4>Hand Balance</h4>
+            <div className="balance-bar">
+              <div className="left-side" style={{ width: `${stats.handBalance.left}%` }}>
+                L {stats.handBalance.left}%
               </div>
+              <div className="right-side" style={{ width: `${stats.handBalance.right}%` }}>
+                R {stats.handBalance.right}%
+              </div>
+            </div>
+            <div className="balance-counts">
+              <span>{stats.handBalance.leftCount.toLocaleString()} left</span>
+              <span>{stats.handBalance.rightCount.toLocaleString()} right</span>
+            </div>
+          </div>
 
-              {expandedSessions.has(session.id) && (
-                <div className="session-details">
-                  {session.raw_text && (
-                    <div className="session-text">
-                      <strong>Text:</strong> {session.raw_text}
-                    </div>
-                  )}
-
-                  <div className="keystrokes-grid">
-                    {session.keystrokes.map((ks, idx) => (
-                      <div key={ks.id} className="keystroke-item">
-                        <span className="ks-key">{ks.key === ' ' ? '␣' : ks.key}</span>
-                        <span className="ks-finger">{ks.finger || '-'}</span>
-                        <span className="ks-time">{(ks.timestamp % 10000).toFixed(0)}ms</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="session-summary">
-                    <div className="summary-stat">
-                      <span className="stat-label">Unique fingers:</span>
-                      <span className="stat-value">
-                        {new Set(session.keystrokes.map(k => k.finger).filter(Boolean)).size}
-                      </span>
-                    </div>
-                    <div className="summary-stat">
-                      <span className="stat-label">Unique keys:</span>
-                      <span className="stat-value">
-                        {new Set(session.keystrokes.map(k => k.key)).size}
-                      </span>
-                    </div>
-                  </div>
+          {/* Mode Breakdown */}
+          <div className="mode-card">
+            <h4>By Mode</h4>
+            <div className="mode-list">
+              {stats.modeData.map((m, i) => (
+                <div key={m.mode} className="mode-item">
+                  <span className="mode-dot" style={{ background: COLORS[i % COLORS.length] }}></span>
+                  <span className="mode-name">{m.mode}</span>
+                  <span className="mode-count">{m.count.toLocaleString()}</span>
                 </div>
-              )}
+              ))}
             </div>
-          ))}
+          </div>
 
-          {sessionData.length === 0 && (
-            <div className="card">
-              <p className="empty-state">No session data available.</p>
+          {/* Top Digraphs */}
+          <div className="digraph-card">
+            <h4>Most Typed Digraphs</h4>
+            <div className="digraph-list">
+              {stats.topDigraphs.slice(0, 10).map((d, i) => (
+                <div key={d.digraph} className="digraph-item">
+                  <span className="digraph-rank">{i + 1}</span>
+                  <span className="digraph-text">{d.digraph}</span>
+                  <span className="digraph-count">{d.count}</span>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       )}
 
-      {/* Statistics View */}
-      {viewMode === 'stats' && stats && (
-        <div className="stats-view">
-          {/* Hand Balance */}
-          <div className="card stats-section">
-            <h4>Hand Balance</h4>
-            <div className="balance-bar">
-              <div
-                className="left-bar"
-                style={{ width: `${stats.leftHandPercent}%` }}
-              >
-                Left {stats.leftHandPercent}%
-              </div>
-              <div
-                className="right-bar"
-                style={{ width: `${stats.rightHandPercent}%` }}
-              >
-                Right {stats.rightHandPercent}%
-              </div>
-            </div>
+      {/* Fingers View */}
+      {activeView === 'fingers' && (
+        <div className="fingers-view">
+          <div className="finger-chart-section">
+            <h4>Keystroke Distribution by Finger</h4>
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart data={stats.fingerData} layout="vertical" margin={{ left: 70, right: 20 }}>
+                <XAxis type="number" tick={{ fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={65} />
+                <Tooltip
+                  formatter={(value) => [value.toLocaleString(), 'Keystrokes']}
+                  contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '4px' }}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+                  {stats.fingerData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={entry.finger.startsWith('left') ? '#4A90E2' : '#50C878'}
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Finger Distribution */}
-          <div className="card stats-section">
-            <h4>Finger Distribution</h4>
-            <div className="finger-bars">
-              {stats.byFinger.map(([finger, count]) => {
-                const percent = ((count / stats.total) * 100).toFixed(1);
-                return (
-                  <div key={finger} className="finger-row">
-                    <span className="finger-name">{finger}</span>
-                    <div className="finger-bar-container">
-                      <div
-                        className={`finger-bar ${finger.startsWith('left') ? 'left' : 'right'}`}
-                        style={{ width: `${percent}%` }}
+          <div className="finger-table">
+            <div className="table-header">
+              <span>Finger</span>
+              <span>Count</span>
+              <span>Percent</span>
+              <span>Avg Time</span>
+            </div>
+            {stats.fingerData.map(f => (
+              <div key={f.finger} className={`table-row ${f.finger.startsWith('left') ? 'left' : 'right'}`}>
+                <span className="finger-name">{f.name}</span>
+                <span className="finger-count">{f.count.toLocaleString()}</span>
+                <span className="finger-percent">{f.percent}%</span>
+                <span className="finger-time">{f.avgTime}ms</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Keys View */}
+      {activeView === 'keys' && (
+        <div className="keys-view">
+          <h4>Key Frequency (Top 26)</h4>
+          <div className="keys-chart">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={stats.keyData} margin={{ top: 10, right: 10, left: 10, bottom: 40 }}>
+                <XAxis
+                  dataKey="key"
+                  tick={{ fontSize: 11 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={50}
+                />
+                <YAxis tick={{ fontSize: 11 }} />
+                <Tooltip
+                  formatter={(value) => [value.toLocaleString(), 'Count']}
+                  contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '4px' }}
+                />
+                <Bar dataKey="count" fill="#4A90E2" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <div className="keys-grid">
+            {stats.keyData.map(k => (
+              <div key={k.key} className="key-item">
+                <span className="key-char">{k.key}</span>
+                <span className="key-count">{k.count.toLocaleString()}</span>
+                <span className="key-percent">{k.percent}%</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Timing View */}
+      {activeView === 'timing' && (
+        <div className="timing-view">
+          <h4>Average Timing by Finger</h4>
+          <div className="timing-chart">
+            <ResponsiveContainer width="100%" height={250}>
+              <BarChart
+                data={stats.fingerData.filter(f => f.avgTime > 0)}
+                layout="vertical"
+                margin={{ left: 70, right: 20 }}
+              >
+                <XAxis type="number" tick={{ fontSize: 11 }} unit="ms" />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} width={65} />
+                <Tooltip
+                  formatter={(value) => [`${value}ms`, 'Avg Time']}
+                  contentStyle={{ background: 'var(--bg-card)', border: '1px solid var(--border-light)', borderRadius: '4px' }}
+                />
+                <Bar dataKey="avgTime" radius={[0, 4, 4, 0]}>
+                  {stats.fingerData.map((entry, index) => {
+                    const avg = stats.fingerData.reduce((s, f) => s + f.avgTime, 0) / stats.fingerData.length;
+                    return (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={entry.avgTime < avg ? '#4caf50' : entry.avgTime > avg * 1.2 ? '#f44336' : '#ff9800'}
                       />
-                    </div>
-                    <span className="finger-count">{count} ({percent}%)</span>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
 
-          {/* Top Keys */}
-          <div className="card stats-section">
-            <h4>Most Typed Keys</h4>
-            <div className="keys-grid">
-              {stats.byKey.map(([key, count]) => (
-                <div key={key} className="key-item">
-                  <span className="key-char">{key === ' ' ? 'SPACE' : key}</span>
-                  <span className="key-count">{count}</span>
-                </div>
-              ))}
+          <div className="timing-summary">
+            <div className="timing-stat">
+              <span className="timing-label">Fastest Finger</span>
+              <span className="timing-value">
+                {stats.fingerData.filter(f => f.avgTime > 0).sort((a, b) => a.avgTime - b.avgTime)[0]?.name || '-'}
+              </span>
             </div>
-          </div>
-
-          {/* By Mode */}
-          <div className="card stats-section">
-            <h4>Keystrokes by Mode</h4>
-            <div className="mode-list">
-              {stats.byMode.map(([mode, count]) => (
-                <div key={mode} className="mode-item">
-                  <span className="mode-name">{mode}</span>
-                  <span className="mode-count">{count.toLocaleString()}</span>
-                </div>
-              ))}
+            <div className="timing-stat">
+              <span className="timing-label">Slowest Finger</span>
+              <span className="timing-value">
+                {stats.fingerData.filter(f => f.avgTime > 0).sort((a, b) => b.avgTime - a.avgTime)[0]?.name || '-'}
+              </span>
+            </div>
+            <div className="timing-stat">
+              <span className="timing-label">Overall Average</span>
+              <span className="timing-value">
+                {Math.round(stats.fingerData.filter(f => f.avgTime > 0).reduce((s, f) => s + f.avgTime, 0) / stats.fingerData.filter(f => f.avgTime > 0).length) || 0}ms
+              </span>
             </div>
           </div>
         </div>

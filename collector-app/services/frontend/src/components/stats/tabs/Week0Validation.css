@@ -1,0 +1,235 @@
+/**
+ * Week0Validation styles
+ */
+
+.week0-validation {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Validation Status */
+.validation-status {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-radius: 10px;
+}
+
+.validation-status.status-go {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.15), rgba(76, 175, 80, 0.08));
+  border: 2px solid rgba(76, 175, 80, 0.5);
+}
+
+.validation-status.status-nogo {
+  background: linear-gradient(135deg, rgba(244, 67, 54, 0.15), rgba(244, 67, 54, 0.08));
+  border: 2px solid rgba(244, 67, 54, 0.5);
+}
+
+.status-indicator {
+  font-size: 1.75rem;
+  font-weight: 700;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+
+.status-go .status-indicator {
+  background: #4caf50;
+  color: white;
+}
+
+.status-nogo .status-indicator {
+  background: #f44336;
+  color: white;
+}
+
+.status-message {
+  font-size: 1rem;
+  color: var(--text-main);
+}
+
+/* Test Results */
+.test-results {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.test-card {
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.test-card.result-pass {
+  background: rgba(76, 175, 80, 0.08);
+  border-left-color: #4caf50;
+}
+
+.test-card.result-warning {
+  background: rgba(255, 152, 0, 0.08);
+  border-left-color: #ff9800;
+}
+
+.test-card.result-fail {
+  background: rgba(244, 67, 54, 0.08);
+  border-left-color: #f44336;
+}
+
+.test-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.test-icon {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.test-name {
+  font-weight: 600;
+  color: var(--text-main);
+  flex: 1;
+}
+
+.test-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  color: white;
+}
+
+.test-desc {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  margin: 0 0 0.75rem 0;
+}
+
+.test-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.test-metric {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+}
+
+.metric-label {
+  color: var(--text-dim);
+}
+
+.metric-value {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.metric-threshold {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* Charts */
+.chart-container {
+  margin: 1rem 0;
+}
+
+.chart-caption {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  text-align: center;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Decision Matrix */
+.decision-matrix {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.matrix-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid var(--border-light);
+}
+
+.matrix-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0.6rem 0.5rem;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-light);
+  align-items: center;
+}
+
+.matrix-row:last-child {
+  border-bottom: none;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.status-badge.status-pass {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+
+.status-badge.status-warning {
+  background: rgba(255, 152, 0, 0.2);
+  color: #f57c00;
+}
+
+.status-badge.status-fail {
+  background: rgba(244, 67, 54, 0.2);
+  color: #d32f2f;
+}
+
+/* Dark mode */
+[data-theme="dark"] .test-card.result-pass {
+  background: rgba(76, 175, 80, 0.12);
+}
+
+[data-theme="dark"] .test-card.result-warning {
+  background: rgba(255, 152, 0, 0.12);
+}
+
+[data-theme="dark"] .test-card.result-fail {
+  background: rgba(244, 67, 54, 0.12);
+}
+
+[data-theme="dark"] .status-badge.status-pass {
+  background: rgba(76, 175, 80, 0.25);
+  color: #81c784;
+}
+
+[data-theme="dark"] .status-badge.status-warning {
+  background: rgba(255, 152, 0, 0.25);
+  color: #ffb74d;
+}
+
+[data-theme="dark"] .status-badge.status-fail {
+  background: rgba(244, 67, 54, 0.25);
+  color: #e57373;
+}

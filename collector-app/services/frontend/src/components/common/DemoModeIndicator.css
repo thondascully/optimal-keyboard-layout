@@ -1,0 +1,61 @@
+/**
+ * DemoModeIndicator styles
+ */
+
+.demo-mode-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.demo-mode-indicator--info {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(74, 144, 226, 0.05));
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  color: var(--accent);
+}
+
+.demo-mode-indicator--warning {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 152, 0, 0.05));
+  border: 1px solid rgba(255, 152, 0, 0.3);
+  color: #ff9800;
+}
+
+.demo-mode-icon {
+  font-size: 1rem;
+}
+
+.demo-mode-message {
+  flex: 1;
+  font-weight: 500;
+}
+
+.demo-mode-badge {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  background: currentColor;
+  color: white;
+}
+
+.demo-mode-indicator--info .demo-mode-badge {
+  background: var(--accent);
+}
+
+.demo-mode-indicator--warning .demo-mode-badge {
+  background: #ff9800;
+}
+
+/* Dark mode */
+[data-theme="dark"] .demo-mode-indicator--info {
+  background: linear-gradient(135deg, rgba(74, 144, 226, 0.15), rgba(74, 144, 226, 0.08));
+}
+
+[data-theme="dark"] .demo-mode-indicator--warning {
+  background: linear-gradient(135deg, rgba(255, 152, 0, 0.15), rgba(255, 152, 0, 0.08));
+}
